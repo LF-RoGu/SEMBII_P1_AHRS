@@ -36,6 +36,7 @@ struct bmi160_device
 #define BMI160_I2C_ADDR                      (0x68)
 #define BMI160_I2C_SUBADDR_SIZE              (2U)
 #define BMI160_I2C_DATA_SIZE              	 (2U)
+#define BMI160_I2C_BAUDRATE					 (100000U)
 
 /*
  * @brief This API

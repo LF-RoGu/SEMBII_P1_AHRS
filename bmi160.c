@@ -24,6 +24,40 @@ static void i2c_master_callback(
 	}
 }
 
+/*!
+ * @brief This API reads the data from the given register address
+ * of sensor.
+ */
+void i2c_init(void)
+{
+	CLOCK_EnableClock(kCLOCK_PortB);
+	CLOCK_EnableClock(kCLOCK_I2c0);
+
+	port_pin_config_t config_i2c_t =
+	{
+			kPORT_PullUp,
+			kPORT_SlowSlewRate,
+			kPORT_PassiveFilterDisable,
+		    kPORT_OpenDrainEnable,
+			kPORT_LowDriveStrength,
+			kPORT_MuxAlt2,
+		    kPORT_UnlockRegister,
+	};
+
+	PORT_SetPinConfig(PORTB, 2, &config_i2c_t);
+	PORT_SetPinConfig(PORTB, 3, &config_i2c_t);
+
+	i2c_master_config_t master_config_t;
+
+	I2C_MasterGetDefaultConfig(&master_config_t);
+	master_config_t.baudRate_Bps = BMI160_I2C_BAUDRATE;
+	I2C_MasterInit(I2C0, &master_config_t, CLOCK_GetFreq(kCLOCK_BusClk));
+}
+
+/*!
+ * @brief This API reads the data from the given register address
+ * of sensor.
+ */
 void bmi160_write(uint8_t data, uint8_t address)
 {
 	i2c_master_transfer_t master_transfer;
@@ -57,6 +91,10 @@ void bmi160_write(uint8_t data, uint8_t address)
 	xSemaphoreGive(g_device_mutex);
 }
 
+/*!
+ * @brief This API reads the data from the given register address
+ * of sensor.
+ */
 uint8_t bmi160_read(uint8_t address)
 {
 	i2c_master_transfer_t master_transfer;
