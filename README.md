@@ -1,1 +1,1 @@
-# SEMII_P1_AHRS
+# Práctica #1: AHRS
