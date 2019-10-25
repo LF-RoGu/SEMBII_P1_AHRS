@@ -39,6 +39,7 @@
 #include "clock_config.h"
 #include "MK64F12.h"
 #include "fsl_debug_console.h"
+#include "bmi160.h"
 /* TODO: insert other include files here. */
 
 /* TODO: insert other definitions and declarations here. */
@@ -55,16 +56,19 @@ int main(void) {
   	/* Init FSL debug console. */
     BOARD_InitDebugConsole();
 
+    uint16_t data = 0x09;
+    uint16_t address = 0x10;
+
     PRINTF("Hello World\n");
 
-    /* Force the counter to be placed into memory. */
-    volatile static int i = 0 ;
+    gpio_i2c_config();
+
+    bmi160_rtos_init();
+
     /* Enter an infinite loop, just incrementing a counter. */
-    while(1) {
-        i++ ;
-        /* 'Dummy' NOP to allow source level single stepping of
-            tight while() loop */
-        __asm volatile ("nop");
+    for(;;)
+    {
+    	bmi160_write(data,address);
     }
     return 0 ;
 }

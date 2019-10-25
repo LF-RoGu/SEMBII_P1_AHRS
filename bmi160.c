@@ -6,52 +6,43 @@
  */
 #include "bmi160.h"
 
-static SemaphoreHandle_t g_device_mutex;
+extern SemaphoreHandle_t g_device_mutex;
 i2c_master_handle_t g_master_handle;
+i2c_rtos_handle_t g_rtos_handle;
+i2c_master_config_t g_master_config_t;
 struct bmi160_device g_device;
-
-static void i2c_master_callback(
-		I2C_Type *base,
-		i2c_master_handle_t *handle,
-        status_t status,
-		void * userData)
-{
-	//PRINTF("SUCCESS\n");
-	if (status == kStatus_Success)
-	{
-		g_device.master_transfer_flag = true;
-
-	}
-}
 
 /*!
  * @brief This API reads the data from the given register address
  * of sensor.
  */
-void i2c_init(void)
+void gpio_i2c_config(void)
 {
-	CLOCK_EnableClock(kCLOCK_PortB);
-	CLOCK_EnableClock(kCLOCK_I2c0);
+	/*** GPIO CONFIGURATION **/
+	gpio_pin_control_register_t i2c_config = GPIO_MUX2 | GPIO_PS;
 
-	port_pin_config_t config_i2c_t =
-	{
-			kPORT_PullUp,
-			kPORT_SlowSlewRate,
-			kPORT_PassiveFilterDisable,
-		    kPORT_OpenDrainEnable,
-			kPORT_LowDriveStrength,
-			kPORT_MuxAlt2,
-		    kPORT_UnlockRegister,
-	};
+	/** Activate PORT B clock gating **/
+	GPIO_clock_gating(GPIO_B);
 
-	PORT_SetPinConfig(PORTB, 2, &config_i2c_t);
-	PORT_SetPinConfig(PORTB, 3, &config_i2c_t);
+	/*Set the configuration for i2c_config_Tx*/
+	GPIO_pin_control_register(GPIO_B, bit_2, &i2c_config);
+	/*Set the configuration for i2c_config_Rx*/
+	GPIO_pin_control_register(GPIO_B, bit_3, &i2c_config);
+	/*Set the config fot the pin that it will send the i2c protocol*/
+	GPIO_data_direction_pin(GPIO_B,GPIO_OUTPUT, bit_2);
+	/*Set the config fot the pin that it will receive the i2c protocol*/
+	GPIO_data_direction_pin(GPIO_B,GPIO_INPUT, bit_3);
+}
 
-	i2c_master_config_t master_config_t;
+void bmi160_rtos_init(void)
+{
+	uint32_t src_clk = CLOCK_GetFreq(kCLOCK_BusClk);
 
-	I2C_MasterGetDefaultConfig(&master_config_t);
-	master_config_t.baudRate_Bps = BMI160_I2C_BAUDRATE;
-	I2C_MasterInit(I2C0, &master_config_t, CLOCK_GetFreq(kCLOCK_BusClk));
+	g_master_config_t.baudRate_Bps = BMI160_I2C_BAUDRATE;
+
+	g_master_config_t.enableMaster = true;
+
+	I2C_RTOS_Init(&g_rtos_handle,I2C0, &g_master_config_t, src_clk);
 }
 
 /*!
@@ -62,13 +53,8 @@ void bmi160_write(uint8_t data, uint8_t address)
 {
 	i2c_master_transfer_t master_transfer;
 
-	I2C_MasterTransferCreateHandle(I2C0, &g_master_handle,i2c_master_callback, NULL);
-
 	g_device.data = data;
 	g_device.address = address;
-
-	xSemaphoreTake(g_device_mutex,portMAX_DELAY);
-
 
 	master_transfer.slaveAddress = BMI160_I2C_ADDR;
 	master_transfer.direction = kI2C_Write;
@@ -78,53 +64,12 @@ void bmi160_write(uint8_t data, uint8_t address)
 	master_transfer.dataSize = BMI160_I2C_DATA_SIZE;
 	master_transfer.flags = kI2C_TransferDefaultFlag;
 
-	I2C_MasterTransferNonBlocking(I2C0, &g_master_handle,&master_transfer);
+	I2C_RTOS_Transfer(&g_rtos_handle, &master_transfer);
 
-	while (!g_device.master_transfer_flag)
-	{
-		/*
-		 * Do Nothing
-		 */
-	}
-	g_device.master_transfer_flag = false;
-
-	xSemaphoreGive(g_device_mutex);
 }
 
 /*!
  * @brief This API reads the data from the given register address
  * of sensor.
  */
-uint8_t bmi160_read(uint8_t address)
-{
-	i2c_master_transfer_t master_transfer;
-
-	I2C_MasterTransferCreateHandle(I2C0, &g_master_handle,i2c_master_callback, NULL);
-
-	g_device.address = address;
-
-	xSemaphoreTake(g_device_mutex,portMAX_DELAY);
-
-
-	master_transfer.slaveAddress = BMI160_I2C_ADDR;
-	master_transfer.direction = kI2C_Read;
-	master_transfer.subaddress = g_device.address;
-	master_transfer.subaddressSize = BMI160_I2C_SUBADDR_SIZE;
-	master_transfer.data = &g_device.data;
-	master_transfer.dataSize = BMI160_I2C_DATA_SIZE;
-	master_transfer.flags = kI2C_TransferDefaultFlag;
-
-	I2C_MasterTransferNonBlocking(I2C0, &g_master_handle,&master_transfer);
-
-	while (!g_device.master_transfer_flag)
-	{
-		/*
-		 * Do Nothing
-		 */
-	}
-	g_device.master_transfer_flag = false;
-
-	xSemaphoreGive(g_device_mutex);
-
-	return g_device.data;
-}
+uint8_t bmi160_read(uint8_t address);

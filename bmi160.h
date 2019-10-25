@@ -13,6 +13,9 @@
 #include "FREErtos.h"
 #include "event_groups.h"
 #include "semphr.h"
+#include "fsl_i2c_freertos.h"
+#include "gpio.h"
+#include "i2c.h"
 
 struct bmi160_device
 {
@@ -38,6 +41,14 @@ struct bmi160_device
 #define BMI160_I2C_DATA_SIZE              	 (2U)
 #define BMI160_I2C_BAUDRATE					 (100000U)
 
+/*
+ * @brief This API
+ */
+void gpio_i2c_config(void);
+/*
+ * @brief This API
+ */
+void bmi160_rtos_init(void);
 /*
  * @brief This API
  */
