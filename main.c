@@ -60,9 +60,11 @@ int main(void) {
 
     gpio_i2c_config();
 
+    bmi160_normal_mode_config();
+
     /* Enter an infinite loop, just incrementing a counter. */
     while(1) {
-    	bmi160_read(0x10);
+    	bmi160_get_data();
     }
     return 0 ;
 }

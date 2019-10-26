@@ -47,6 +47,19 @@
 
 /* STATUS*/
 #define BMI160_READ_PMU_STATUS				(0x03)
+/* ACC_PMU_STATUS*/
+#define BMI160_ACC_PMU_STATUS				(0x48)
+/* GYR_PMU_STATUS*/
+#define BMI160_GYR_PMU_STATUS				(0x12)
+/* MAG_PMU_STATUS*/
+#define BMI160_MAG_PMU_STATUS				(0x03)
+
+/* PMU CONF*/
+#define BMI160_GYR_RANGE	                (0x43)
+#define BMI160_GYR_CONF		                (0x42)
+
+#define BMI160_ACC_RANGE	                (0x41)
+#define BMI160_ACC_CONF		                (0x40)
 
 typedef enum
 {
@@ -54,6 +67,37 @@ typedef enum
 	Y_ENUM,
 	Z_ENUM
 }ACCEL_ENUM;
+
+typedef enum
+{
+	PMU_ACC_ERROR,
+	PMU_GYR_ERROR,
+	PMU_MAG_ERROR
+}PMU_STATUS_ENUM;
+
+struct acc_cfg
+{
+    /*! power mode */
+    uint8_t power;
+
+    /*! output data rate */
+    uint8_t odr;
+
+    /*! range */
+    uint8_t range;
+
+    /*! bandwidth */
+    uint8_t bw;
+};
+
+struct bmi160_device
+{
+    /*! Structure to configure Accel sensor */
+    struct bmi160_cfg accel_cfg;
+
+    /*! Structure to configure Gyro sensor */
+    struct bmi160_cfg gyro_cfg;
+};
 
 struct comm_msg_gyr_t
 {
@@ -71,38 +115,66 @@ struct comm_msg_acc_t
 	float z;
 };
 
-/*
- *
+/*!
+ * @brief This API
  */
 void gpio_i2c_config(void);
-/*
- *
+/*!
+ * @brief This API
+ */
+void bmi160_normal_mode_config(void);
+/*!
+ * @brief This API
  */
 void bmi160_write(uint16_t reg,uint8_t data);
-/*
- *
+/*!
+ * @brief This API
+ */
+uint8_t bmi160_read_pmu_status(void);
+/*!
+ * @brief This API
  */
 uint8_t bmi160_read(uint16_t reg);
 /* READ GYR AND ACC*/
-/*
- *
+/*!
+ * @brief This API
  */
 void bmi160_read_acc(void);
-/*
- *
+/*!
+ * @brief This API
+ */
+void data_axis_acc(void);
+/*!
+ * @brief This API
+ */
+void bmi160_print_acc(void);
+/*!
+ * @brief This API
  */
 void bmi160_read_gyr(void);
+/*!
+ * @brief This API
+ */
+void data_axis_gyr(void);
+/*!
+ * @brief This API
+ */
+void bmi160_print_gyr(void);
+/*!
+ * @brief This API
+ */
+void bmi160_get_data(void);
 /* OFFSET SETUP*/
-/*
- *
+/*!
+ * @brief This API
  */
 void bmi160_offset_gyr(uint8_t accel,uint8_t off);
-/*
- *
+/*!
+ * @brief This API
  */
 void bmi160_offset_acc(uint8_t accel,uint8_t off);
-/*
- *
+/*!
+ * @brief This API
  */
 void I2Cwritedelay(void);
 
