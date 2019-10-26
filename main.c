@@ -29,7 +29,7 @@
  */
  
 /**
- * @file    AHRS_Project.c
+ * @file    Practica1_Project.c
  * @brief   Application entry point.
  */
 #include <stdio.h>
@@ -56,19 +56,19 @@ int main(void) {
   	/* Init FSL debug console. */
     BOARD_InitDebugConsole();
 
-    uint16_t data = 0x09;
-    uint16_t address = 0x10;
-
     PRINTF("Hello World\n");
 
     gpio_i2c_config();
 
-    bmi160_rtos_init();
+
+
+    //bmi160_write(0x10,0x09);
+
+
 
     /* Enter an infinite loop, just incrementing a counter. */
-    for(;;)
-    {
-    	bmi160_write(data,address);
+    while(1) {
+    	bmi160_read(0x10);
     }
     return 0 ;
 }

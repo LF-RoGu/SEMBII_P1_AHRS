@@ -1,16 +1,30 @@
 /*
  * bmi160.c
  *
- *  Created on: Oct 23, 2019
+ *  Created on: Oct 25, 2019
  *      Author: LuisFernando
  */
+
 #include "bmi160.h"
 
-extern SemaphoreHandle_t g_device_mutex;
-i2c_master_handle_t g_master_handle;
-i2c_rtos_handle_t g_rtos_handle;
-i2c_master_config_t g_master_config_t;
-struct bmi160_device g_device;
+uint8_t g_MasterCompletionFlag = false;
+
+static i2c_master_handle_t g_master_handle;
+static i2c_master_transfer_t g_master_transfer;
+static i2c_master_config_t g_master_config;
+
+static void i2c_master_callback(
+		I2C_Type *base,
+		i2c_master_handle_t *handle,
+        status_t status,
+		void * userData)
+{
+	//PRINTF("SUCCESS\n");
+	if (status == kStatus_Success)
+	{
+		g_MasterCompletionFlag = true;
+	}
+}
 
 /*!
  * @brief This API reads the data from the given register address
@@ -18,58 +32,63 @@ struct bmi160_device g_device;
  */
 void gpio_i2c_config(void)
 {
-	/*** GPIO CONFIGURATION **/
-	gpio_pin_control_register_t i2c_config = GPIO_MUX2 | GPIO_PS;
+	I2C_MasterGetDefaultConfig(&g_master_config);
 
-	/** Activate PORT B clock gating **/
-	GPIO_clock_gating(GPIO_B);
+	g_master_config.baudRate_Bps = BMI160_BAUDRATE;
 
-	/*Set the configuration for i2c_config_Tx*/
-	GPIO_pin_control_register(GPIO_B, bit_2, &i2c_config);
-	/*Set the configuration for i2c_config_Rx*/
-	GPIO_pin_control_register(GPIO_B, bit_3, &i2c_config);
-	/*Set the config fot the pin that it will send the i2c protocol*/
-	GPIO_data_direction_pin(GPIO_B,GPIO_OUTPUT, bit_2);
-	/*Set the config fot the pin that it will receive the i2c protocol*/
-	GPIO_data_direction_pin(GPIO_B,GPIO_INPUT, bit_3);
+	I2C_MasterInit(I2C0, &g_master_config, CLOCK_GetFreq(kCLOCK_BusClk));
+
+	I2C_MasterTransferCreateHandle(I2C0, &g_master_handle,i2c_master_callback, NULL);
 }
 
-void bmi160_rtos_init(void)
+void bmi160_write(uint16_t reg,uint8_t data)
 {
-	uint32_t src_clk = CLOCK_GetFreq(kCLOCK_BusClk);
+	g_master_transfer.slaveAddress = BMI160_I2C_ADDR;
+	g_master_transfer.direction = kI2C_Write;
+	g_master_transfer.subaddress = reg;
+	g_master_transfer.subaddressSize = BMI160_SUBADDRESS_SIZE;
+	g_master_transfer.data = &data;
+	g_master_transfer.dataSize = BMI160_DATA_SIZE;
+	g_master_transfer.flags = kI2C_TransferDefaultFlag;
 
-	g_master_config_t.baudRate_Bps = BMI160_I2C_BAUDRATE;
+	I2C_MasterTransferNonBlocking(I2C0, &g_master_handle,&g_master_transfer);
 
-	g_master_config_t.enableMaster = true;
+	while (!g_MasterCompletionFlag)
+	{
+	}
+	g_MasterCompletionFlag = false;
 
-	I2C_RTOS_Init(&g_rtos_handle,I2C0, &g_master_config_t, src_clk);
+	I2Cwritedelay();
 }
 
-/*!
- * @brief This API reads the data from the given register address
- * of sensor.
- */
-void bmi160_write(uint8_t data, uint8_t address)
+uint8_t bmi160_read(uint16_t reg)
 {
-	i2c_master_transfer_t master_transfer;
+	uint8_t data_temp;
 
-	g_device.data = data;
-	g_device.address = address;
+	g_master_transfer.slaveAddress = BMI160_I2C_ADDR;
+	g_master_transfer.direction = kI2C_Read;
+	g_master_transfer.subaddress = reg;
+	g_master_transfer.subaddressSize = BMI160_SUBADDRESS_SIZE;
+	g_master_transfer.data = &data_temp;
+	g_master_transfer.dataSize = BMI160_DATA_SIZE;
+	g_master_transfer.flags = kI2C_TransferDefaultFlag;
 
-	master_transfer.slaveAddress = BMI160_I2C_ADDR;
-	master_transfer.direction = kI2C_Write;
-	master_transfer.subaddress = g_device.address;
-	master_transfer.subaddressSize = BMI160_I2C_SUBADDR_SIZE;
-	master_transfer.data = &g_device.data;
-	master_transfer.dataSize = BMI160_I2C_DATA_SIZE;
-	master_transfer.flags = kI2C_TransferDefaultFlag;
+	I2C_MasterTransferNonBlocking(I2C0, &g_master_handle,&g_master_transfer);
 
-	I2C_RTOS_Transfer(&g_rtos_handle, &master_transfer);
+	while (!g_MasterCompletionFlag)
+	{
+	}
+	g_MasterCompletionFlag = false;
 
+	I2Cwritedelay();
+
+	return data_temp;
 }
 
-/*!
- * @brief This API reads the data from the given register address
- * of sensor.
- */
-uint8_t bmi160_read(uint8_t address);
+void I2Cwritedelay(void)
+{
+	for(uint32_t i = 120000000;i==0;i--)
+	{
+	}
+
+}
