@@ -29,7 +29,7 @@
  */
  
 /**
- * @file    AHRS_Project.c
+ * @file    Practica1_Project.c
  * @brief   Application entry point.
  */
 #include <stdio.h>
@@ -39,6 +39,11 @@
 #include "clock_config.h"
 #include "MK64F12.h"
 #include "fsl_debug_console.h"
+#include "bmi160.h"
+#include "FreeRTOS.h"
+#include "semphr.h"
+
+static struct bmi160_t device;
 /* TODO: insert other include files here. */
 
 /* TODO: insert other definitions and declarations here. */
@@ -55,16 +60,19 @@ int main(void) {
   	/* Init FSL debug console. */
     BOARD_InitDebugConsole();
 
-    PRINTF("Hello World\n");
+    bmi_160_init(&device);
 
-    /* Force the counter to be placed into memory. */
-    volatile static int i = 0 ;
+    /* seconds task creation */
+    xTaskCreate(accelerometer_task, "acc_task", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-1, NULL);
+
+    /* start scheduler */
+    vTaskStartScheduler();
+
     /* Enter an infinite loop, just incrementing a counter. */
-    while(1) {
-        i++ ;
-        /* 'Dummy' NOP to allow source level single stepping of
-            tight while() loop */
-        __asm volatile ("nop");
+    for(;;)
+    {
+    	//bmi160_get_data();
     }
+
     return 0 ;
 }
