@@ -158,11 +158,21 @@ void convert_value_gyr(uint16_t *axis_data);
 /*!
  * @brief This API
  */
-void bmi160_print_acc(void);
+void bmi160_print_acc_dec(void);
 
 /*!
  * @brief This API
  */
-void bmi160_print_gyr(void);
+void bmi160_print_acc_float(void);
+
+/*!
+ * @brief This API
+ */
+void bmi160_print_gyr_dec(void);
+
+/*!
+ * @brief This API
+ */
+void bmi160_print_gyr_float(void);
 
 #endif /* BMI160_H_ */

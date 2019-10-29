@@ -16,9 +16,10 @@ uint16_t g_data_axis_acc[3] = {0};
 uint16_t g_data_axis_gyr[3] = {0};
 
 struct bmi160_device sensor;
+struct comm_msg_acc_t acc_device;
+struct comm_msg_acc_t gyr_device;
 
 struct rtos_i2c_bmi160_package sensor_package;
-
 
 /*!
  * @brief This API
@@ -41,7 +42,6 @@ void bmi160_normal_mode_config(void)
 	sensor.gyro_cfg.range = BMI160_GYRO_RANGE_2000_DPS;
 	/* Select the power mode of Gyroscope sensor */
 	sensor.gyro_cfg.power = BMI160_GYRO_NORMAL_MODE;
-
 
 
 	/* Sensor package*/
@@ -112,6 +112,10 @@ void bmi160_read_acc(void)
 
 		sensor_package.subaddr++;
 	}
+	/*
+	 *
+	 */
+	data_axis_acc();
 }
 /*!
  * @brief This API
@@ -145,6 +149,11 @@ void bmi160_read_gyr(void)
 
 		sensor_package.subaddr++;
 	}
+
+	/*
+	 *
+	 */
+	data_axis_gyr();
 }
 
 /*!
@@ -204,8 +213,6 @@ void data_axis_gyr(void)
  */
 void convert_value_acc(uint16_t *acc_axis_data)
 {
-	struct comm_msg_acc_t acc_device;
-
 	uint8_t index;
 
 	for(index = X_REG;index < Z_REG;index++)
@@ -274,8 +281,6 @@ void convert_value_acc(uint16_t *acc_axis_data)
  */
 void convert_value_gyr(uint16_t *gyr_axis_data)
 {
-	struct comm_msg_acc_t gyr_device;
-
 	uint8_t index;
 
 	for(index = X_REG;index < Z_REG;index++)
@@ -342,7 +347,7 @@ void convert_value_gyr(uint16_t *gyr_axis_data)
 /*!
  * @brief This API
  */
-void bmi160_print_acc(void)
+void bmi160_print_acc_dec(void)
 {
 	printf("acc axis: X: %d Y: %d Z: %d\n", g_data_axis_acc[X_REG],g_data_axis_acc[Y_REG],g_data_axis_acc[Z_REG]);
 }
@@ -350,7 +355,23 @@ void bmi160_print_acc(void)
 /*!
  * @brief This API
  */
-void bmi160_print_gyr(void)
+void bmi160_print_acc_float(void)
+{
+	printf("acc axis: X: %f Y: %f Z: %f\n", acc_device.x,acc_device.y,acc_device.z);
+}
+
+/*!
+ * @brief This API
+ */
+void bmi160_print_gyr_dec(void)
 {
 	printf("gyr axis: X: %d Y: %d Z: %d\n", g_data_axis_gyr[X_REG],g_data_axis_gyr[Y_REG],g_data_axis_gyr[Z_REG]);
+}
+
+/*!
+ * @brief This API
+ */
+void bmi160_print_gyr_float(void)
+{
+	printf("gyr axis: X: %f Y: %f Z: %f\n", acc_device.x,acc_device.y,acc_device.z);
 }

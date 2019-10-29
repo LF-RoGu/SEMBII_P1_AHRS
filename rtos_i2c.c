@@ -129,10 +129,6 @@ rtos_i2c_flag_t rtos_i2c_init(rtos_i2c_config_t config)
 		}
 	}
 	return retval;
-
-
-
-
 }
 
 /**Transfer data through I2C*/
