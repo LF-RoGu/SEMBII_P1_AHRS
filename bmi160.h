@@ -61,6 +61,11 @@
 #define BMI160_ACC_RANGE	                (0x41)
 #define BMI160_ACC_CONF		                (0x40)
 
+/**/
+#define BMI160_MAX_VALUE					(65535U)
+#define BMI160_ACC_UNITS					(2000U)
+#define BMI160_GYR_UNITS					(2U) // 2G
+
 typedef enum
 {
 	X_ENUM,
@@ -173,6 +178,14 @@ void bmi160_offset_gyr(uint8_t accel,uint8_t off);
  * @brief This API
  */
 void bmi160_offset_acc(uint8_t accel,uint8_t off);
+/*!
+ * @brief This API
+ */
+float decode_value_acc(uint16_t value);
+/*!
+ * @brief This API
+ */
+float decode_value_gyr(uint16_t value);
 /*!
  * @brief This API
  */

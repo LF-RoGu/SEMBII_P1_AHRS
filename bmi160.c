@@ -60,7 +60,7 @@ void bmi160_normal_mode_config(void)
 	/* Select the Output data rate, range of accelerometer sensor */
 	sensor.accel_cfg.odr = BMI160_ACCEL_ODR_1600HZ;
 	sensor.accel_cfg.range = BMI160_ACCEL_RANGE_2G;
-	sensor.accel_cfg.bw = BMI160_ACCEL_BW_NORMAL_AVG4;
+	sensor.accel_cfg.bw = BMI160_ACCEL_BW_NORMAL_AVG4; //en teoria es un 0x20
 	/* Select the power mode of accelerometer sensor */
 	sensor.accel_cfg.power = BMI160_ACCEL_NORMAL_MODE;
 	/*
@@ -74,16 +74,20 @@ void bmi160_normal_mode_config(void)
 	sensor.gyro_cfg.power = BMI160_GYRO_NORMAL_MODE;
 
 	/* Send the Data to the sensor*/
-	/* GYR*/
-	bmi160_write(BMI160_GYR_RANGE,sensor.gyro_cfg.range);
-	bmi160_write(BMI160_GYR_CONF,(sensor.gyro_cfg.bw | sensor.gyro_cfg.odr));
+
 	/* SET POWER MODE*/
-	bmi160_write(BMI160_COMMAND_REG_ADDR,sensor.gyro_cfg.power);
 	/* ACC*/
-	bmi160_write(BMI160_ACC_RANGE,sensor.accel_cfg.range);
-	bmi160_write(BMI160_ACC_CONF,(sensor.accel_cfg.bw | sensor.accel_cfg.odr));
-	/* SET POWER MODE*/
 	bmi160_write(BMI160_COMMAND_REG_ADDR,sensor.accel_cfg.power);
+	/* GYR*/
+	bmi160_write(BMI160_COMMAND_REG_ADDR,sensor.gyro_cfg.power);
+
+	/* ACC*/
+	bmi160_write(BMI160_ACC_CONF,(sensor.accel_cfg.bw | sensor.accel_cfg.odr));
+	bmi160_write(BMI160_ACC_RANGE,sensor.accel_cfg.range);
+
+	/* GYR*/
+	bmi160_write(BMI160_GYR_CONF,(sensor.gyro_cfg.bw | sensor.gyro_cfg.odr));
+	bmi160_write(BMI160_GYR_RANGE,sensor.gyro_cfg.range);
 }
 /************************************************************************************/
 /*!
@@ -103,6 +107,9 @@ void bmi160_write(uint16_t reg,uint8_t data)
 
 	while (!g_MasterCompletionFlag)
 	{
+		/*
+		 * Do nothing
+		 */
 	}
 	g_MasterCompletionFlag = false;
 
@@ -178,20 +185,17 @@ void data_axis_acc(void)
 {
 	uint16_t data_temp;
 	/* Data axis X*/
-	data_temp = ((uint16_t) g_read_acc[0]) << 8;
-	data_temp += g_read_acc[0];
+	data_temp = (g_read_acc[0] << 8) | g_read_acc[1];
 
 	g_data_axis_acc[0] = data_temp;
 	/* Data axis Y*/
-	data_temp = ((uint16_t) g_read_acc[3]) << 8;
-	data_temp += g_read_acc[2];
+	data_temp = (g_read_acc[2] << 8) | g_read_acc[3];
 
 	g_data_axis_acc[1] = data_temp;
 	/* Data axis Z*/
-	data_temp = ((uint16_t) g_read_acc[5]) << 8;
-	data_temp += g_read_acc[4];
+	data_temp = (g_read_acc[4] << 8) | g_read_acc[5];
 
-	g_data_axis_acc[3] = data_temp;
+	g_data_axis_acc[2] = data_temp;
 
 
 	/* Print axis*/
@@ -223,20 +227,17 @@ void data_axis_gyr(void)
 {
 	uint16_t data_temp;
 	/* Data axis X*/
-	data_temp = ((uint16_t) g_read_gyr[0]) << 8;
-	data_temp += g_read_gyr[0];
+	data_temp = (g_read_gyr[0] << 8) | g_read_gyr[1];
 
 	g_data_axis_gyr[0] = data_temp;
 	/* Data axis Y*/
-	data_temp = ((uint16_t) g_read_gyr[3]) << 8;
-	data_temp += g_read_gyr[2];
+	data_temp = (g_read_gyr[2] << 8) | g_read_gyr[3];
 
 	g_data_axis_gyr[1] = data_temp;
 	/* Data axis Z*/
-	data_temp = ((uint16_t) g_read_gyr[5]) << 8;
-	data_temp += g_read_gyr[4];
+	data_temp = (g_read_gyr[4] << 8) | g_read_gyr[5];
 
-	g_data_axis_gyr[3] = data_temp;
+	g_data_axis_gyr[2] = data_temp;
 
 
 	/* Print axis*/
@@ -298,6 +299,9 @@ void bmi160_offset_acc(uint8_t accel,uint8_t off)
 		break;
 	}
 }
+/*
+ *
+ */
 void I2Cwritedelay(void)
 {
 	for(uint32_t i = 120000000;i==0;i--)
