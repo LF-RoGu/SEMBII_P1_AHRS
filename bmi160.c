@@ -266,10 +266,7 @@ void bmi160_print_gyr_dec(void)
  */
 void bmi160_print_gyr_float(void)
 {
-	float acc_device_x = acc_device.x;
-	float acc_device_y = acc_device.y;
-	float acc_device_z = acc_device.z;
-	printf("FLOAT gyr axis: X: %.2f Y: %.2f Z: %.2f\n", acc_device_x,acc_device_y,acc_device_z);
+	printf("FLOAT gyr axis: X: %.2f Y: %.2f Z: %.2f\n", gyr_device.x,gyr_device.y,gyr_device.z);
 }
 
 /*!
@@ -349,7 +346,7 @@ void convert_value_acc(uint16_t *acc_axis_data)
 		}
 	}
 	/* Print data axis in float*/
-	bmi160_print_gyr_float();
+	bmi160_print_acc_float();
 }
 
 /*!
@@ -366,11 +363,11 @@ void convert_value_gyr(uint16_t *gyr_axis_data)
 		case X_REG:
 			if(gyr_axis_data[X_REG] >= (BMI160_MAX_VALUE/2))
 			{
-				gyr_device.x = (BMI160_ACC_UINTS_RANGE_POSITIVE*(float)gyr_axis_data[X_REG])/BMI160_MAX_VALUE;
+				gyr_device.x = (BMI160_GYR_UNITS_RANGE_POSITIVE*(float)gyr_axis_data[X_REG])/BMI160_MAX_VALUE;
 			}
 			else if (gyr_axis_data[X_REG] < (BMI160_MAX_VALUE/2))
 			{
-				gyr_device.x = (BMI160_ACC_UINTS_RANGE_NEGATIVE*(float)gyr_axis_data[X_REG])/BMI160_MAX_VALUE;
+				gyr_device.x = (BMI160_GYR_UNITS_RANGE_NEGATIVE*(float)gyr_axis_data[X_REG])/BMI160_MAX_VALUE;
 			}
 			else
 			{
@@ -382,11 +379,11 @@ void convert_value_gyr(uint16_t *gyr_axis_data)
 		case Y_REG:
 			if(gyr_axis_data[Y_REG] >= (BMI160_MAX_VALUE/2))
 			{
-				gyr_device.y = (BMI160_ACC_UINTS_RANGE_POSITIVE*(float)gyr_axis_data[Y_REG])/BMI160_MAX_VALUE;
+				gyr_device.y = (BMI160_GYR_UNITS_RANGE_POSITIVE*(float)gyr_axis_data[Y_REG])/BMI160_MAX_VALUE;
 			}
 			else if (gyr_axis_data[Y_REG] < (BMI160_MAX_VALUE/2))
 			{
-				gyr_device.y = (BMI160_ACC_UINTS_RANGE_NEGATIVE*(float)gyr_axis_data[Y_REG])/BMI160_MAX_VALUE;
+				gyr_device.y = (BMI160_GYR_UNITS_RANGE_NEGATIVE*(float)gyr_axis_data[Y_REG])/BMI160_MAX_VALUE;
 			}
 			else
 			{
@@ -398,11 +395,11 @@ void convert_value_gyr(uint16_t *gyr_axis_data)
 		case Z_REG:
 			if(gyr_axis_data[Z_REG] >= (BMI160_MAX_VALUE/2))
 			{
-				gyr_device.z = (BMI160_ACC_UINTS_RANGE_POSITIVE*(float)gyr_axis_data[Z_REG])/BMI160_MAX_VALUE;
+				gyr_device.z = (BMI160_GYR_UNITS_RANGE_POSITIVE*(float)gyr_axis_data[Z_REG])/BMI160_MAX_VALUE;
 			}
 			else if (gyr_axis_data[Z_REG] < (BMI160_MAX_VALUE/2))
 			{
-				gyr_device.z = (BMI160_ACC_UINTS_RANGE_NEGATIVE*(float)gyr_axis_data[Z_REG])/BMI160_MAX_VALUE;
+				gyr_device.z = (BMI160_GYR_UNITS_RANGE_NEGATIVE*(float)gyr_axis_data[Z_REG])/BMI160_MAX_VALUE;
 			}
 			else
 			{
