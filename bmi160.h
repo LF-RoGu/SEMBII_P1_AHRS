@@ -12,6 +12,7 @@
 #include "bits.h"
 #include "bmi160_defs.h"
 #include "gpio.h"
+#include <stdio.h>
 
 #define BMI160_DATA_SIZE 					(1U)
 #define BMI160_SUBADDRESS_SIZE 				(1U)
@@ -63,15 +64,27 @@
 
 /**/
 #define BMI160_MAX_VALUE					(65535U)
-#define BMI160_ACC_UNITS					(2000U)
-#define BMI160_GYR_UNITS					(2U) // 2G
+#define BMI160_ACC_UINTS_RANGE_POSITIVE		(2U)
+#define BMI160_ACC_UINTS_RANGE_NEGATIVE		(-2)
+#define BMI160_GYR_UNITS_RANGE_POSITIVE		(2000U) // 2G
+#define BMI160_GYR_UNITS_RANGE_NEGATIVE		(-2000)
 
 typedef enum
 {
-	X_ENUM,
-	Y_ENUM,
-	Z_ENUM
+	X_REG,
+	Y_REG,
+	Z_REG
 }ACCEL_ENUM;
+
+typedef enum
+{
+	X_LOW,
+	X_HIGH,
+	Y_LOW,
+	Y_HIGH,
+	Z_LOW,
+	Z_HIGH
+}REG_READ_ENUM;
 
 typedef enum
 {
@@ -152,19 +165,11 @@ void data_axis_acc(void);
 /*!
  * @brief This API
  */
-void bmi160_print_acc(void);
-/*!
- * @brief This API
- */
 void bmi160_read_gyr(void);
 /*!
  * @brief This API
  */
 void data_axis_gyr(void);
-/*!
- * @brief This API
- */
-void bmi160_print_gyr(void);
 /*!
  * @brief This API
  */
@@ -186,6 +191,35 @@ float decode_value_acc(uint16_t value);
  * @brief This API
  */
 float decode_value_gyr(uint16_t value);
+/*!
+ * @brief This API
+ */
+void convert_value_acc(uint16_t *axis_data);
+
+/*!
+ * @brief This API
+ */
+void convert_value_gyr(uint16_t *axis_data);
+
+/*!
+ * @brief This API
+ */
+void bmi160_print_acc_dec(void);
+
+/*!
+ * @brief This API
+ */
+void bmi160_print_acc_float(void);
+
+/*!
+ * @brief This API
+ */
+void bmi160_print_gyr_dec(void);
+
+/*!
+ * @brief This API
+ */
+void bmi160_print_gyr_float(void);
 /*!
  * @brief This API
  */

@@ -21,6 +21,8 @@ static i2c_master_transfer_t g_master_transfer;
 static i2c_master_config_t g_master_config;
 
 struct bmi160_device sensor;
+struct comm_msg_acc_t acc_device;
+struct comm_msg_acc_t gyr_device;
 
 static void i2c_master_callback(
 		I2C_Type *base,
@@ -118,31 +120,6 @@ void bmi160_write(uint16_t reg,uint8_t data)
 /*!
  * @brief This API
  */
-uint8_t bmi160_read_pmu_status(void)
-{
-	uint8_t pmu_status_t;
-	/* PMU STATUS*/
-	pmu_status_t = bmi160_read(BMI160_READ_PMU_STATUS);
-
-	switch(pmu_status_t)
-	{
-	case BMI160_ACC_PMU_STATUS:
-		pmu_status_t = PMU_ACC_ERROR;
-		break;
-	case BMI160_GYR_PMU_STATUS:
-		pmu_status_t = PMU_GYR_ERROR;
-		break;
-	case BMI160_MAG_PMU_STATUS:
-		pmu_status_t = PMU_MAG_ERROR;
-		break;
-	default:
-		break;
-	}
-	return pmu_status_t;
-}
-/*!
- * @brief This API
- */
 uint8_t bmi160_read(uint16_t reg)
 {
 	uint8_t data_temp;
@@ -171,85 +148,130 @@ uint8_t bmi160_read(uint16_t reg)
  */
 void bmi160_read_acc(void)
 {
-	g_read_acc[0] = bmi160_read(BMI160_READ_ACC_X_H);
-	g_read_acc[1] = bmi160_read(BMI160_READ_ACC_X_L);
-	g_read_acc[2] = bmi160_read(BMI160_READ_ACC_Y_H);
-	g_read_acc[3] = bmi160_read(BMI160_READ_ACC_Y_L);
-	g_read_acc[4] = bmi160_read(BMI160_READ_ACC_Z_H);
-	g_read_acc[5] = bmi160_read(BMI160_READ_ACC_Z_L);
+	uint8_t index = 0;
+	uint8_t data_temp;
+
+	uint16_t reg_address = BMI160_READ_ACC_X_L;
+
+	for(index = X_LOW; index <= Z_HIGH; index++)
+	{
+		data_temp = bmi160_read(reg_address);
+		g_read_acc[index] = data_temp;
+
+		reg_address++;
+	}
 
 	/**/
 	data_axis_acc();
-}
-void data_axis_acc(void)
-{
-	uint16_t data_temp;
-	/* Data axis X*/
-	data_temp = (g_read_acc[0] << 8) | g_read_acc[1];
-
-	g_data_axis_acc[0] = data_temp;
-	/* Data axis Y*/
-	data_temp = (g_read_acc[2] << 8) | g_read_acc[3];
-
-	g_data_axis_acc[1] = data_temp;
-	/* Data axis Z*/
-	data_temp = (g_read_acc[4] << 8) | g_read_acc[5];
-
-	g_data_axis_acc[2] = data_temp;
-
-
-	/* Print axis*/
-	bmi160_print_acc();
-}
-/*!
- * @brief This API
- */
-void bmi160_print_acc(void)
-{
-	printf("acc axis: X: %d Y: %d Z: %d\n", g_data_axis_acc[0],g_data_axis_acc[1],g_data_axis_acc[2]);
 }
 /*!
  * @brief This API
  */
 void bmi160_read_gyr(void)
 {
-	g_read_gyr[0] = bmi160_read(BMI160_READ_GYR_X_H);
-	g_read_gyr[1] = bmi160_read(BMI160_READ_GYR_X_L);
-	g_read_gyr[2] = bmi160_read(BMI160_READ_GYR_Y_H);
-	g_read_gyr[3] = bmi160_read(BMI160_READ_GYR_Y_L);
-	g_read_gyr[4] = bmi160_read(BMI160_READ_GYR_Z_H);
-	g_read_gyr[5] = bmi160_read(BMI160_READ_GYR_Z_L);
+	uint8_t index = 0;
+	uint8_t data_temp;
+
+	uint16_t reg_address = BMI160_READ_GYR_X_L;
+
+	for(index = X_LOW; index <= Z_HIGH; index++)
+	{
+		data_temp = bmi160_read(reg_address);
+		g_read_gyr[index] = data_temp;
+
+		reg_address++;
+	}
 
 	/**/
 	data_axis_gyr();
 }
-void data_axis_gyr(void)
+/*!
+ * @brief This API
+ */
+void data_axis_acc(void)
 {
 	uint16_t data_temp;
+
 	/* Data axis X*/
-	data_temp = (g_read_gyr[0] << 8) | g_read_gyr[1];
+	data_temp = ((uint16_t) g_read_acc[X_LOW] << 8) | g_read_acc[X_HIGH];
 
-	g_data_axis_gyr[0] = data_temp;
+	g_data_axis_acc[X_REG] = data_temp;
 	/* Data axis Y*/
-	data_temp = (g_read_gyr[2] << 8) | g_read_gyr[3];
+	data_temp = ((uint16_t)g_read_acc[Y_LOW] << 8) | g_read_acc[Y_HIGH];
 
-	g_data_axis_gyr[1] = data_temp;
+	g_data_axis_acc[Y_REG] = data_temp;
 	/* Data axis Z*/
-	data_temp = (g_read_gyr[4] << 8) | g_read_gyr[5];
+	data_temp = ((uint16_t)g_read_acc[Z_LOW] << 8) | g_read_acc[Z_HIGH];
 
-	g_data_axis_gyr[2] = data_temp;
+	g_data_axis_acc[Z_REG] = data_temp;
 
 
-	/* Print axis*/
-	bmi160_print_gyr();
+	/* Print data axis*/
+	bmi160_print_acc_dec();
+	/* Convert data axis*/
+	convert_value_acc(g_data_axis_acc);
 }
 /*!
  * @brief This API
  */
-void bmi160_print_gyr(void)
+void data_axis_gyr(void)
 {
-	printf("gyr axis: X: %d Y: %d Z: %d\n", g_data_axis_gyr[0],g_data_axis_gyr[1],g_data_axis_gyr[2]);
+	uint16_t data_temp;
+
+	/* Data axis X*/
+	data_temp = ((uint16_t) g_read_gyr[X_LOW] << 8) | g_read_gyr[X_HIGH];
+
+	g_data_axis_gyr[X_REG] = data_temp;
+	/* Data axis Y*/
+	data_temp = ((uint16_t)g_read_gyr[Y_LOW] << 8) | g_read_gyr[Y_HIGH];
+
+	g_data_axis_gyr[Y_REG] = data_temp;
+	/* Data axis Z*/
+	data_temp = ((uint16_t)g_read_gyr[Z_LOW] << 8) | g_read_gyr[Z_HIGH];
+
+	g_data_axis_gyr[Z_REG] = data_temp;
+
+
+	/* Print data axis in uint32_t*/
+	bmi160_print_gyr_dec();
+	/* Convert data axis*/
+	convert_value_gyr(g_data_axis_gyr);
 }
+/*!
+ * @brief This API
+ */
+void bmi160_print_acc_dec(void)
+{
+	printf("acc axis: X: %d Y: %d Z: %d\n", g_data_axis_acc[X_REG],g_data_axis_acc[Y_REG],g_data_axis_acc[Z_REG]);
+}
+
+/*!
+ * @brief This API
+ */
+void bmi160_print_acc_float(void)
+{
+	printf("FLOAT acc axis: X: %.2f Y: %.2f Z: %.2f\n", acc_device.x,acc_device.y,acc_device.z);
+}
+
+/*!
+ * @brief This API
+ */
+void bmi160_print_gyr_dec(void)
+{
+	printf("gyr axis: X: %d Y: %d Z: %d\n", g_data_axis_gyr[X_REG],g_data_axis_gyr[Y_REG],g_data_axis_gyr[Z_REG]);
+}
+
+/*!
+ * @brief This API
+ */
+void bmi160_print_gyr_float(void)
+{
+	float acc_device_x = acc_device.x;
+	float acc_device_y = acc_device.y;
+	float acc_device_z = acc_device.z;
+	printf("FLOAT gyr axis: X: %.2f Y: %.2f Z: %.2f\n", acc_device_x,acc_device_y,acc_device_z);
+}
+
 /*!
  * @brief This API
  */
@@ -259,48 +281,148 @@ void bmi160_get_data(void)
 	bmi160_read_acc();
 	bmi160_read_gyr();
 }
+
 /*!
  * @brief This API
  */
-void bmi160_offset_gyr(uint8_t accel,uint8_t off)
+void convert_value_acc(uint16_t *acc_axis_data)
 {
-	switch(accel)
+	uint8_t index;
+
+	for(index = X_REG;index <= Z_REG;index++)
 	{
-	case X_ENUM:
-		bmi160_write(BMI160_OFFSET_GYR_X,off);
-		break;
-	case Y_ENUM:
-		bmi160_write(BMI160_OFFSET_GYR_Y,off);
-		break;
-	case Z_ENUM:
-		bmi160_write(BMI160_OFFSET_GYR_Z,off);
-		break;
-	default:
-		break;
+		switch (index)
+		{
+		case X_REG:
+			if(acc_axis_data[X_REG] >= (BMI160_MAX_VALUE/2))
+			{
+				acc_device.x = (BMI160_ACC_UINTS_RANGE_POSITIVE*(float)acc_axis_data[X_REG])/BMI160_MAX_VALUE;
+			}
+			else if (acc_axis_data[X_REG] < (BMI160_MAX_VALUE/2))
+			{
+				acc_device.x = (BMI160_ACC_UINTS_RANGE_NEGATIVE*(float)acc_axis_data[X_REG])/BMI160_MAX_VALUE;
+			}
+			else
+			{
+				/*
+				 * Do Nothing
+				 */
+			}
+			break;
+		case Y_REG:
+			if(acc_axis_data[Y_REG] >= (BMI160_MAX_VALUE/2))
+			{
+				acc_device.y = (BMI160_ACC_UINTS_RANGE_POSITIVE*(float)acc_axis_data[Y_REG])/BMI160_MAX_VALUE;
+			}
+			else if (acc_axis_data[Y_REG] < (BMI160_MAX_VALUE/2))
+			{
+				acc_device.y = (BMI160_ACC_UINTS_RANGE_NEGATIVE*(float)acc_axis_data[Y_REG])/BMI160_MAX_VALUE;
+			}
+			else
+			{
+				/*
+				 * Do Nothing
+				 */
+			}
+			break;
+		case Z_REG:
+			if(acc_axis_data[Z_REG] >= (BMI160_MAX_VALUE/2))
+			{
+				acc_device.z = (BMI160_ACC_UINTS_RANGE_POSITIVE*(float)acc_axis_data[Z_REG])/BMI160_MAX_VALUE;
+			}
+			else if (acc_axis_data[Z_REG] < (BMI160_MAX_VALUE/2))
+			{
+				acc_device.z = (BMI160_ACC_UINTS_RANGE_NEGATIVE*(float)acc_axis_data[Z_REG])/BMI160_MAX_VALUE;
+			}
+			else
+			{
+				/*
+				 * Do Nothing
+				 */
+			}
+			break;
+		default:
+			/*
+			 * Do Nothing
+			 */
+			break;
+		}
 	}
+	/* Print data axis in float*/
+	bmi160_print_gyr_float();
 }
+
 /*!
  * @brief This API
  */
-void bmi160_offset_acc(uint8_t accel,uint8_t off)
+void convert_value_gyr(uint16_t *gyr_axis_data)
 {
-	switch(accel)
+	uint8_t index;
+
+	for(index = X_REG;index <= Z_REG;index++)
 	{
-	case X_ENUM:
-		bmi160_write(BMI160_OFFSET_ACC_X,off);
-		break;
-	case Y_ENUM:
-		bmi160_write(BMI160_OFFSET_ACC_Y,off);
-		break;
-	case Z_ENUM:
-		bmi160_write(BMI160_OFFSET_ACC_Z,off);
-		break;
-	default:
-		break;
+		switch (index)
+		{
+		case X_REG:
+			if(gyr_axis_data[X_REG] >= (BMI160_MAX_VALUE/2))
+			{
+				gyr_device.x = (BMI160_ACC_UINTS_RANGE_POSITIVE*(float)gyr_axis_data[X_REG])/BMI160_MAX_VALUE;
+			}
+			else if (gyr_axis_data[X_REG] < (BMI160_MAX_VALUE/2))
+			{
+				gyr_device.x = (BMI160_ACC_UINTS_RANGE_NEGATIVE*(float)gyr_axis_data[X_REG])/BMI160_MAX_VALUE;
+			}
+			else
+			{
+				/*
+				 * Do Nothing
+				 */
+			}
+			break;
+		case Y_REG:
+			if(gyr_axis_data[Y_REG] >= (BMI160_MAX_VALUE/2))
+			{
+				gyr_device.y = (BMI160_ACC_UINTS_RANGE_POSITIVE*(float)gyr_axis_data[Y_REG])/BMI160_MAX_VALUE;
+			}
+			else if (gyr_axis_data[Y_REG] < (BMI160_MAX_VALUE/2))
+			{
+				gyr_device.y = (BMI160_ACC_UINTS_RANGE_NEGATIVE*(float)gyr_axis_data[Y_REG])/BMI160_MAX_VALUE;
+			}
+			else
+			{
+				/*
+				 * Do Nothing
+				 */
+			}
+			break;
+		case Z_REG:
+			if(gyr_axis_data[Z_REG] >= (BMI160_MAX_VALUE/2))
+			{
+				gyr_device.z = (BMI160_ACC_UINTS_RANGE_POSITIVE*(float)gyr_axis_data[Z_REG])/BMI160_MAX_VALUE;
+			}
+			else if (gyr_axis_data[Z_REG] < (BMI160_MAX_VALUE/2))
+			{
+				gyr_device.z = (BMI160_ACC_UINTS_RANGE_NEGATIVE*(float)gyr_axis_data[Z_REG])/BMI160_MAX_VALUE;
+			}
+			else
+			{
+				/*
+				 * Do Nothing
+				 */
+			}
+			break;
+		default:
+			/*
+			 * Do Nothing
+			 */
+			break;
+		}
 	}
+	/* Print data axis in float*/
+	bmi160_print_gyr_float();
 }
-/*
- *
+/*!
+ * @brief This API
  */
 void I2Cwritedelay(void)
 {
