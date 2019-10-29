@@ -29,7 +29,7 @@
  */
  
 /**
- * @file    Practica1_Project.c
+ * @file    AHRS_Project.c
  * @brief   Application entry point.
  */
 #include <stdio.h>
@@ -39,7 +39,8 @@
 #include "clock_config.h"
 #include "MK64F12.h"
 #include "fsl_debug_console.h"
-#include "bmi160.h"
+#include "rtos_i2c.h"
+#include "rtos_uart.h"
 /* TODO: insert other include files here. */
 
 /* TODO: insert other definitions and declarations here. */
@@ -58,13 +59,22 @@ int main(void) {
 
     PRINTF("Hello World\n");
 
-    gpio_i2c_config();
+    /**/
+    rtos_i2c_config_t i2c_config_t;
 
-    bmi160_normal_mode_config();
+    i2c_config_t.baudrate = RTOS_I2C_BAUDRATE;
+    i2c_config_t.i2c_number = rtos_i2c_0;
+    i2c_config_t.port = rtos_i2c_portE;
+    i2c_config_t.SDA_pin = bit_25;
+    i2c_config_t.SCL_pin = bit_24;
+    i2c_config_t.pin_mux = rtos_mux_alt05;
 
-    /* Enter an infinite loop, just incrementing a counter. */
-    while(1) {
-    	bmi160_get_data();
+    rtos_i2c_init(i2c_config_t);
+
+
+    /* Enter an infinite loop*/
+    for(;;)
+    {
     }
     return 0 ;
 }
