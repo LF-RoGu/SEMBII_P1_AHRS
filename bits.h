@@ -1,14 +1,16 @@
 /*
- * Bits.h
+ * bits.h
  *
- *  Created on: 04/09/2018
+ *  Created on: 22/12/2018
  *      Author: jlpe
  */
 
 #ifndef BITS_H_
 #define BITS_H_
 
-#define NULL 0
+#include <stdint.h>
+#include <stdio.h>
+
 
 /*! This definition is as a general definitions to bits in regiter or pins in the microcontroller.*/
 typedef enum {bit_0,  /*!< Bit 0 */
@@ -34,7 +36,7 @@ typedef enum {bit_0,  /*!< Bit 0 */
 			  bit_20, /*!< Bit 20 */
 			  bit_21, /*!< Bit 21 */
 			  bit_22, /*!< Bit 22 */
-			  bit_23,/*!< Bit 23 */
+			  bit_23, /*!< Bit 23 */
 			  bit_24, /*!< Bit 24 */
 			  bit_25, /*!< Bit 25 */
 			  bit_26, /*!< Bit 26 */
@@ -43,13 +45,13 @@ typedef enum {bit_0,  /*!< Bit 0 */
 			  bit_29, /*!< Bit 29 */
 	          bit_30, /*!< Bit 30 */
 			  bit_31  /*!< Bit 31 */
-			} BitsType;
+			} bit_t;
 
 
 
 typedef enum{FALSE, TRUE} boolean_t;
 /*! This definition is as a general definitions to bits turn-on or turn-off any bit*/
-typedef enum {BIT_OFF, BIT_ON} BIT_ON_OFF_Type;
+typedef enum {BIT_OFF, BIT_ON} bit_on_off_t;
 
 
 #endif /* BITS_H_ */

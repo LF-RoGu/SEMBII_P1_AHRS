@@ -1,15 +1,17 @@
 /*
  * bmi160.h
  *
- *  Created on: Oct 29, 2019
+ *  Created on: Oct 25, 2019
  *      Author: LuisFernando
  */
 
 #ifndef BMI160_H_
 #define BMI160_H_
 
-#include "rtos_i2c.h"
+#include "fsl_i2c.h"
+#include "bits.h"
 #include "bmi160_defs.h"
+#include "gpio.h"
 #include <stdio.h>
 
 #define BMI160_DATA_SIZE 					(1U)
@@ -64,7 +66,7 @@
 #define BMI160_MAX_VALUE					(65535U)
 #define BMI160_ACC_UINTS_RANGE_POSITIVE		(2U)
 #define BMI160_ACC_UINTS_RANGE_NEGATIVE		(-2)
-#define BMI160_GYR_UNITS_RANGE_POSITIVE		(2000U)
+#define BMI160_GYR_UNITS_RANGE_POSITIVE		(2000U) // 2G
 #define BMI160_GYR_UNITS_RANGE_NEGATIVE		(-2000)
 
 typedef enum
@@ -73,6 +75,7 @@ typedef enum
 	Y_REG,
 	Z_REG
 }ACCEL_ENUM;
+
 typedef enum
 {
 	X_LOW,
@@ -83,14 +86,26 @@ typedef enum
 	Z_HIGH
 }REG_READ_ENUM;
 
-struct rtos_i2c_bmi160_package
+typedef enum
 {
-	rtos_i2c_number_t i2c_number;
-	uint8_t * buffer;
-	uint16_t length;
-	uint16_t slave_addr;
-	uint16_t subaddr;
-	uint8_t subsize;
+	PMU_ACC_ERROR,
+	PMU_GYR_ERROR,
+	PMU_MAG_ERROR
+}PMU_STATUS_ENUM;
+
+struct acc_cfg
+{
+    /*! power mode */
+    uint8_t power;
+
+    /*! output data rate */
+    uint8_t odr;
+
+    /*! range */
+    uint8_t range;
+
+    /*! bandwidth */
+    uint8_t bw;
 };
 
 struct bmi160_device
@@ -118,33 +133,64 @@ struct comm_msg_acc_t
 	float z;
 };
 
-
-
+/*!
+ * @brief This API
+ */
+void gpio_i2c_config(void);
 /*!
  * @brief This API
  */
 void bmi160_normal_mode_config(void);
-
+/*!
+ * @brief This API
+ */
+void bmi160_write(uint16_t reg,uint8_t data);
+/*!
+ * @brief This API
+ */
+uint8_t bmi160_read_pmu_status(void);
+/*!
+ * @brief This API
+ */
+uint8_t bmi160_read(uint16_t reg);
+/* READ GYR AND ACC*/
 /*!
  * @brief This API
  */
 void bmi160_read_acc(void);
-
-/*!
- * @brief This API
- */
-void bmi160_read_gyr(void);
-
 /*!
  * @brief This API
  */
 void data_axis_acc(void);
-
+/*!
+ * @brief This API
+ */
+void bmi160_read_gyr(void);
 /*!
  * @brief This API
  */
 void data_axis_gyr(void);
-
+/*!
+ * @brief This API
+ */
+void bmi160_get_data(void);
+/* OFFSET SETUP*/
+/*!
+ * @brief This API
+ */
+void bmi160_offset_gyr(uint8_t accel,uint8_t off);
+/*!
+ * @brief This API
+ */
+void bmi160_offset_acc(uint8_t accel,uint8_t off);
+/*!
+ * @brief This API
+ */
+float decode_value_acc(uint16_t value);
+/*!
+ * @brief This API
+ */
+float decode_value_gyr(uint16_t value);
 /*!
  * @brief This API
  */
@@ -174,5 +220,9 @@ void bmi160_print_gyr_dec(void);
  * @brief This API
  */
 void bmi160_print_gyr_float(void);
+/*!
+ * @brief This API
+ */
+void I2Cwritedelay(void);
 
 #endif /* BMI160_H_ */
