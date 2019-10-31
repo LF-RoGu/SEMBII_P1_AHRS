@@ -70,6 +70,9 @@
 #define BMI160_ACC_UINTS_RANGE_NEGATIVE		(-2)
 #define BMI160_GYR_UNITS_RANGE_POSITIVE		(2000U)
 #define BMI160_GYR_UNITS_RANGE_NEGATIVE		(-2000)
+#define PI_RAD								(3.14159)
+#define BMI160_GYR_RAD_RANGE_POSITIVE		(2*PI_RAD)
+#define BMI160_GYR_RAD_RANGE_NEGATIVE		(PI_RAD)
 
 typedef enum
 {
@@ -163,9 +166,21 @@ void data_axis_gyr(void);
 void convert_value_acc(uint16_t *axis_data);
 
 /*!
+ * @brief This API is for the conversion of the value of the register corresponding to the accelerometer to degrees.
+ * Processing data only
+ */
+void convert_angle_acc(uint16_t *acc_axis_data);
+
+/*!
  * @brief This API is for the conversion of the value of the register corresponding to the gyroscope to floating point.
  */
 void convert_value_gyr(uint16_t *axis_data);
+
+/*!
+ * @brief This API is for the conversion of the value of the register corresponding to the gyroscope to floating point.
+ * Processing data only
+ */
+void convert_value_gyr(uint16_t *gyr_axis_data);
 
 /*!
  * @brief This API is only for debug purpose, used to print the value captured of the registers in 16 bits format.

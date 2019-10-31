@@ -343,6 +343,75 @@ void convert_value_acc(uint16_t *acc_axis_data)
 }
 
 /*!
+ * @brief This API is for the conversion of the value of the register corresponding to the accelerometer to degrees.
+ * Processing data only
+ */
+void convert_angle_acc(uint16_t *acc_axis_data)
+{
+	uint8_t index;
+
+	for(index = X_REG;index <= Z_REG;index++)
+	{
+		switch (index)
+		{
+		case X_REG:
+			if(acc_axis_data[X_REG] >= (BMI160_MAX_VALUE/2))
+			{
+				acc_device.x = (BMI160_GYR_RAD_RANGE_POSITIVE*(float)acc_axis_data[X_REG])/BMI160_MAX_VALUE;
+			}
+			else if (acc_axis_data[X_REG] < (BMI160_MAX_VALUE/2))
+			{
+				acc_device.x = (BMI160_GYR_RAD_RANGE_NEGATIVE*(float)acc_axis_data[X_REG])/BMI160_MAX_VALUE;
+			}
+			else
+			{
+				/*
+				 * Do Nothing
+				 */
+			}
+			break;
+		case Y_REG:
+			if(acc_axis_data[Y_REG] >= (BMI160_MAX_VALUE/2))
+			{
+				acc_device.y = (BMI160_GYR_RAD_RANGE_POSITIVE*(float)acc_axis_data[Y_REG])/BMI160_MAX_VALUE;
+			}
+			else if (acc_axis_data[Y_REG] < (BMI160_MAX_VALUE/2))
+			{
+				acc_device.y = (BMI160_GYR_RAD_RANGE_NEGATIVE*(float)acc_axis_data[Y_REG])/BMI160_MAX_VALUE;
+			}
+			else
+			{
+				/*
+				 * Do Nothing
+				 */
+			}
+			break;
+		case Z_REG:
+			if(acc_axis_data[Z_REG] >= (BMI160_MAX_VALUE/2))
+			{
+				acc_device.z = (BMI160_GYR_RAD_RANGE_POSITIVE*(float)acc_axis_data[Z_REG])/BMI160_MAX_VALUE;
+			}
+			else if (acc_axis_data[Z_REG] < (BMI160_MAX_VALUE/2))
+			{
+				acc_device.z = (BMI160_GYR_RAD_RANGE_NEGATIVE*(float)acc_axis_data[Z_REG])/BMI160_MAX_VALUE;
+			}
+			else
+			{
+				/*
+				 * Do Nothing
+				 */
+			}
+			break;
+		default:
+			/*
+			 * Do Nothing
+			 */
+			break;
+		}
+	}
+}
+
+/*!
  * @brief This API is for the conversion of the value of the register corresponding to the gyroscope to floating point.
  * Processing data only
  */
@@ -411,6 +480,74 @@ void convert_value_gyr(uint16_t *gyr_axis_data)
 	}
 }
 
+/*!
+ * @brief This API is for the conversion of the value of the register corresponding to the gyroscope to degrees.
+ * Processing data only
+ */
+void convert_angle_gyr(uint16_t *gyr_axis_data)
+{
+	uint8_t index;
+
+	for(index = X_REG;index <= Z_REG;index++)
+	{
+		switch (index)
+		{
+		case X_REG:
+			if(gyr_axis_data[X_REG] >= (BMI160_MAX_VALUE/2))
+			{
+				gyr_device.x = (BMI160_GYR_RAD_RANGE_POSITIVE*(float)gyr_axis_data[X_REG])/BMI160_MAX_VALUE;
+			}
+			else if (gyr_axis_data[X_REG] < (BMI160_MAX_VALUE/2))
+			{
+				gyr_device.x = (BMI160_GYR_RAD_RANGE_NEGATIVE*(float)gyr_axis_data[X_REG])/BMI160_MAX_VALUE;
+			}
+			else
+			{
+				/*
+				 * Do Nothing
+				 */
+			}
+			break;
+		case Y_REG:
+			if(gyr_axis_data[Y_REG] >= (BMI160_MAX_VALUE/2))
+			{
+				gyr_device.y = (BMI160_GYR_RAD_RANGE_POSITIVE*(float)gyr_axis_data[Y_REG])/BMI160_MAX_VALUE;
+			}
+			else if (gyr_axis_data[Y_REG] < (BMI160_MAX_VALUE/2))
+			{
+				gyr_device.y = (BMI160_GYR_RAD_RANGE_NEGATIVE*(float)gyr_axis_data[Y_REG])/BMI160_MAX_VALUE;
+			}
+			else
+			{
+				/*
+				 * Do Nothing
+				 */
+			}
+			break;
+		case Z_REG:
+			if(gyr_axis_data[Z_REG] >= (BMI160_MAX_VALUE/2))
+			{
+				gyr_device.z = (BMI160_GYR_RAD_RANGE_POSITIVE*(float)gyr_axis_data[Z_REG])/BMI160_MAX_VALUE;
+			}
+			else if (gyr_axis_data[Z_REG] < (BMI160_MAX_VALUE/2))
+			{
+				gyr_device.z = (BMI160_GYR_RAD_RANGE_NEGATIVE*(float)gyr_axis_data[Z_REG])/BMI160_MAX_VALUE;
+			}
+			else
+			{
+				/*
+				 * Do Nothing
+				 */
+			}
+			break;
+		default:
+			/*
+			 * Do Nothing
+			 */
+			break;
+		}
+	}
+}
 /*!
  * @brief This API is used to calculate the deviation of the values so it can prevent the wrong lectures of the values.
  * Processing data only.
