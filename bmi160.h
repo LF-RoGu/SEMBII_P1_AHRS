@@ -125,72 +125,75 @@ struct comm_msg_acc_t
 
 
 /*!
- * @brief This API
+ * @brief This API is for the startup of the device, so it can run on NORMAL MODE as standard.
+ * Use RTOS system.
  */
 void bmi160_normal_mode_config(void);
 
 /*!
- * @brief This API
+ * @brief This API if for the read the registers corresponding to the accelerometer.
  */
 void bmi160_read_acc(void);
 
 /*!
- * @brief This API
+ * @brief This API is for the read of the registers corresponding to the gyroscope.
  */
 void bmi160_read_gyr(void);
 
 /*!
- * @brief This API
+ * @brief This API is for the RTOS system so it can call the read of the registers for the accelerometer & the gyroscope.
  */
 void bmi160_read_acc_gyr(void);
 
 /*!
- * @brief This API
+ * @brief This API is for the conversion of the registers of 8 bits each, to 16 bits each for the accelerometer.
+ * Only for reading and processing purpose.
  */
 void data_axis_acc(void);
 
 /*!
- * @brief This API
+ * @brief This API is for the conversion of the register of 8 bits each, to 16 bits each for the accelerometer.
+ * Only for reading and processing purpose.
  */
 void data_axis_gyr(void);
 
 /*!
- * @brief This API
+ * @brief This API is for the conversion of the value of the register corresponding to the accelerometer to floating point.
  */
 void convert_value_acc(uint16_t *axis_data);
 
 /*!
- * @brief This API
+ * @brief This API is for the conversion of the value of the register corresponding to the gyroscope to floating point.
  */
 void convert_value_gyr(uint16_t *axis_data);
 
 /*!
- * @brief This API
+ * @brief This API is only for debug purpose, used to print the value captured of the registers in 16 bits format.
  */
 void bmi160_print_acc_dec(void);
 
 /*!
- * @brief This API
+ * @brief This API is only for debu puspose, used to print the value captured of the registers in floatin point format.
  */
 void bmi160_print_acc_float(void);
 
 /*!
- * @brief This API
+ * @brief This API is only for debug purpose, used to print the value captured of the registers in 16 bits format.
  */
 void bmi160_print_gyr_dec(void);
 
 /*!
- * @brief This API
+ * @brief This API is only for debug purpose, used to print the value captured of the registers in floating point format.
  */
 void bmi160_print_gyr_float(void);
 
 /*!
- * @brief This API
+ * @brief This API is used and apply of the mahony function provided by the teacher so it can read the AHRS system.
  */
 void bmi160_send_mahony(void);
 
 /*!
- * @brief This API
+ * @brief This API is used to calculate the deviation of the values so it can prevent the wrong lectures of the values.
  */
 void bmi160_varianza(void);
 

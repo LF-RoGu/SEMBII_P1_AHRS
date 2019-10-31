@@ -41,7 +41,8 @@ struct comm_msg_acc_t gyr_device;
 struct rtos_i2c_bmi160_package sensor_package;
 
 /*!
- * @brief This API
+ * @brief This API is for the startup of the device, so it can run on NORMAL MODE as standard.
+ * Use RTOS system.
  */
 void bmi160_normal_mode_config(void)
 {
@@ -123,7 +124,7 @@ void bmi160_normal_mode_config(void)
 }
 
 /*!
- * @brief This API
+ * @brief This API if for the read the registers corresponding to the accelerometer.
  */
 void bmi160_read_acc(void)
 {
@@ -160,7 +161,7 @@ void bmi160_read_acc(void)
 	data_axis_acc();
 }
 /*!
- * @brief This API
+ * @brief This API is for the read of the registers corresponding to the gyroscope.
  */
 void bmi160_read_gyr(void)
 {
@@ -199,7 +200,8 @@ void bmi160_read_gyr(void)
 }
 
 /*!
- * @brief This API
+ * @brief This API is for the RTOS system so it can call the read of the registers for the accelerometer & the gyroscope.
+ * Use RTOS system.
  */
 void bmi160_read_acc_gyr(void)
 {
@@ -218,7 +220,8 @@ void bmi160_read_acc_gyr(void)
 }
 
 /*!
- * @brief This API
+ * @brief This API is for the conversion of the registers of 8 bits each, to 16 bits each for the accelerometer.
+ * Only for reading and processing purpose.
  */
 void data_axis_acc(void)
 {
@@ -238,13 +241,14 @@ void data_axis_acc(void)
 	g_data_axis_acc[Z_REG] = data_temp;
 
 	/*
-	 *
+	 * Call for teh function so it can get the values to floating point.
 	 */
 	convert_value_acc(g_data_axis_acc);
 }
 
 /*!
- * @brief This API
+ * @brief This API is for the conversion of the register of 8 bits each, to 16 bits each for the accelerometer.
+ * Only for reading and processing purpose.
  */
 void data_axis_gyr(void)
 {
@@ -264,13 +268,14 @@ void data_axis_gyr(void)
 	g_data_axis_gyr[Z_REG] = data_temp;
 
 	/*
-	 *
+	 * Call for teh function so it can get the values to floating point.
 	 */
 	convert_value_gyr(g_data_axis_gyr);
 }
 
 /*!
- * @brief This API
+ * @brief This API is for the conversion of the value of the register corresponding to the accelerometer to floating point.
+ * Processing data only
  */
 void convert_value_acc(uint16_t *acc_axis_data)
 {
@@ -338,7 +343,8 @@ void convert_value_acc(uint16_t *acc_axis_data)
 }
 
 /*!
- * @brief This API
+ * @brief This API is for the conversion of the value of the register corresponding to the gyroscope to floating point.
+ * Processing data only
  */
 void convert_value_gyr(uint16_t *gyr_axis_data)
 {
@@ -406,7 +412,8 @@ void convert_value_gyr(uint16_t *gyr_axis_data)
 }
 
 /*!
- * @brief This API
+ * @brief This API is used to calculate the deviation of the values so it can prevent the wrong lectures of the values.
+ * Processing data only.
  */
 void bmi160_varianza(void)
 {
@@ -417,6 +424,8 @@ void bmi160_varianza(void)
 	float media_acc_x = 0;
 	float media_acc_y = 0;
 	float media_acc_z = 0;
+
+
 	/*
 	 *
 	 */
@@ -512,7 +521,8 @@ void bmi160_varianza(void)
 }
 
 /*!
- * @brief This API
+ * @brief This API is used and apply of the mahony function provided by the teacher so it can read the AHRS system.
+ * Use RTOS system.
  */
 void bmi160_send_mahony(void)
 {
