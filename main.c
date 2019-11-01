@@ -44,6 +44,7 @@
 /* TODO: insert other include files here. */
 #include "FreeRTOS.h"
 #include "bmi160.h"
+#include "ahrs.h"
 #include "task.h"
 /* TODO: insert other definitions and declarations here. */
 

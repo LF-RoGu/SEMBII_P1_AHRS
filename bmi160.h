@@ -19,6 +19,7 @@
 #define BMI160_SUBADDRESS_SIZE 				(1U)
 #define BMI160_BAUDRATE 					(100000U)
 #define BMI160_VAR_BUFFER_SIZE				(10U)
+#define BMI160_HEADER_COMM					(0xAAAAAAAA)
 /* Offset*/
 /* Offset reg gyr*/
 #define BMI160_OFFSET_GYR_Z 				(0x76)
@@ -70,9 +71,6 @@
 #define BMI160_ACC_UINTS_RANGE_NEGATIVE		(-2)
 #define BMI160_GYR_UNITS_RANGE_POSITIVE		(2000U)
 #define BMI160_GYR_UNITS_RANGE_NEGATIVE		(-2000)
-#define PI_RAD								(3.14159)
-#define BMI160_GYR_RAD_RANGE_POSITIVE		(2*PI_RAD)
-#define BMI160_GYR_RAD_RANGE_NEGATIVE		(PI_RAD)
 
 typedef enum
 {
@@ -166,21 +164,9 @@ void data_axis_gyr(void);
 void convert_value_acc(uint16_t *axis_data);
 
 /*!
- * @brief This API is for the conversion of the value of the register corresponding to the accelerometer to degrees.
- * Processing data only
- */
-void convert_angle_acc(uint16_t *acc_axis_data);
-
-/*!
  * @brief This API is for the conversion of the value of the register corresponding to the gyroscope to floating point.
  */
 void convert_value_gyr(uint16_t *axis_data);
-
-/*!
- * @brief This API is for the conversion of the value of the register corresponding to the gyroscope to floating point.
- * Processing data only
- */
-void convert_value_gyr(uint16_t *gyr_axis_data);
 
 /*!
  * @brief This API is only for debug purpose, used to print the value captured of the registers in 16 bits format.
@@ -201,16 +187,6 @@ void bmi160_print_gyr_dec(void);
  * @brief This API is only for debug purpose, used to print the value captured of the registers in floating point format.
  */
 void bmi160_print_gyr_float(void);
-
-/*!
- * @brief This API is used and apply of the mahony function provided by the teacher so it can read the AHRS system.
- */
-void bmi160_send_mahony(void);
-
-/*!
- * @brief This API is used to calculate the deviation of the values so it can prevent the wrong lectures of the values.
- */
-void bmi160_varianza(void);
 
 
 #endif /* BMI160_H_ */

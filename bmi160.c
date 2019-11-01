@@ -15,25 +15,9 @@ uint8_t g_read_acc[6] = {0};
 uint16_t g_data_axis_acc[3] = {0};
 uint16_t g_data_axis_gyr[3] = {0};
 
-uint8_t header_counter = 0;
-
-float acc_var_x [BMI160_VAR_BUFFER_SIZE] = {0};
-uint8_t acc_index_x = 0;
-float acc_var_y [BMI160_VAR_BUFFER_SIZE] = {0};
-uint8_t acc_index_y = 0;
-float acc_var_z [BMI160_VAR_BUFFER_SIZE] = {0};
-uint8_t acc_index_z = 0;
-
-float gyr_var_x [BMI160_VAR_BUFFER_SIZE] = {0};
-uint8_t gyr_index_x = 0;
-float gyr_var_y [BMI160_VAR_BUFFER_SIZE] = {0};
-uint8_t gyr_index_y = 0;
-float gyr_var_z [BMI160_VAR_BUFFER_SIZE] = {0};
-uint8_t gyr_index_z = 0;
-
-float acc_var[3] = {0};
-float gyr_var[3] = {0};
-
+/*
+ * Declaration of the structs to communicate between ahrs and mahony.
+ */
 struct bmi160_device sensor;
 struct comm_msg_acc_t acc_device;
 struct comm_msg_acc_t gyr_device;
@@ -215,7 +199,7 @@ void bmi160_read_acc_gyr(void)
 		//bmi160_varianza();
 
 		/* Send data to the mahony*/
-		bmi160_send_mahony();
+		//bmi160_send_mahony();
 	}
 }
 
@@ -343,75 +327,6 @@ void convert_value_acc(uint16_t *acc_axis_data)
 }
 
 /*!
- * @brief This API is for the conversion of the value of the register corresponding to the accelerometer to degrees.
- * Processing data only
- */
-void convert_angle_acc(uint16_t *acc_axis_data)
-{
-	uint8_t index;
-
-	for(index = X_REG;index <= Z_REG;index++)
-	{
-		switch (index)
-		{
-		case X_REG:
-			if(acc_axis_data[X_REG] >= (BMI160_MAX_VALUE/2))
-			{
-				acc_device.x = (BMI160_GYR_RAD_RANGE_POSITIVE*(float)acc_axis_data[X_REG])/BMI160_MAX_VALUE;
-			}
-			else if (acc_axis_data[X_REG] < (BMI160_MAX_VALUE/2))
-			{
-				acc_device.x = (BMI160_GYR_RAD_RANGE_NEGATIVE*(float)acc_axis_data[X_REG])/BMI160_MAX_VALUE;
-			}
-			else
-			{
-				/*
-				 * Do Nothing
-				 */
-			}
-			break;
-		case Y_REG:
-			if(acc_axis_data[Y_REG] >= (BMI160_MAX_VALUE/2))
-			{
-				acc_device.y = (BMI160_GYR_RAD_RANGE_POSITIVE*(float)acc_axis_data[Y_REG])/BMI160_MAX_VALUE;
-			}
-			else if (acc_axis_data[Y_REG] < (BMI160_MAX_VALUE/2))
-			{
-				acc_device.y = (BMI160_GYR_RAD_RANGE_NEGATIVE*(float)acc_axis_data[Y_REG])/BMI160_MAX_VALUE;
-			}
-			else
-			{
-				/*
-				 * Do Nothing
-				 */
-			}
-			break;
-		case Z_REG:
-			if(acc_axis_data[Z_REG] >= (BMI160_MAX_VALUE/2))
-			{
-				acc_device.z = (BMI160_GYR_RAD_RANGE_POSITIVE*(float)acc_axis_data[Z_REG])/BMI160_MAX_VALUE;
-			}
-			else if (acc_axis_data[Z_REG] < (BMI160_MAX_VALUE/2))
-			{
-				acc_device.z = (BMI160_GYR_RAD_RANGE_NEGATIVE*(float)acc_axis_data[Z_REG])/BMI160_MAX_VALUE;
-			}
-			else
-			{
-				/*
-				 * Do Nothing
-				 */
-			}
-			break;
-		default:
-			/*
-			 * Do Nothing
-			 */
-			break;
-		}
-	}
-}
-
-/*!
  * @brief This API is for the conversion of the value of the register corresponding to the gyroscope to floating point.
  * Processing data only
  */
@@ -481,196 +396,7 @@ void convert_value_gyr(uint16_t *gyr_axis_data)
 }
 
 /*!
- * @brief This API is for the conversion of the value of the register corresponding to the gyroscope to degrees.
- * Processing data only
- */
-void convert_angle_gyr(uint16_t *gyr_axis_data)
-{
-	uint8_t index;
-
-	for(index = X_REG;index <= Z_REG;index++)
-	{
-		switch (index)
-		{
-		case X_REG:
-			if(gyr_axis_data[X_REG] >= (BMI160_MAX_VALUE/2))
-			{
-				gyr_device.x = (BMI160_GYR_RAD_RANGE_POSITIVE*(float)gyr_axis_data[X_REG])/BMI160_MAX_VALUE;
-			}
-			else if (gyr_axis_data[X_REG] < (BMI160_MAX_VALUE/2))
-			{
-				gyr_device.x = (BMI160_GYR_RAD_RANGE_NEGATIVE*(float)gyr_axis_data[X_REG])/BMI160_MAX_VALUE;
-			}
-			else
-			{
-				/*
-				 * Do Nothing
-				 */
-			}
-			break;
-		case Y_REG:
-			if(gyr_axis_data[Y_REG] >= (BMI160_MAX_VALUE/2))
-			{
-				gyr_device.y = (BMI160_GYR_RAD_RANGE_POSITIVE*(float)gyr_axis_data[Y_REG])/BMI160_MAX_VALUE;
-			}
-			else if (gyr_axis_data[Y_REG] < (BMI160_MAX_VALUE/2))
-			{
-				gyr_device.y = (BMI160_GYR_RAD_RANGE_NEGATIVE*(float)gyr_axis_data[Y_REG])/BMI160_MAX_VALUE;
-			}
-			else
-			{
-				/*
-				 * Do Nothing
-				 */
-			}
-			break;
-		case Z_REG:
-			if(gyr_axis_data[Z_REG] >= (BMI160_MAX_VALUE/2))
-			{
-				gyr_device.z = (BMI160_GYR_RAD_RANGE_POSITIVE*(float)gyr_axis_data[Z_REG])/BMI160_MAX_VALUE;
-			}
-			else if (gyr_axis_data[Z_REG] < (BMI160_MAX_VALUE/2))
-			{
-				gyr_device.z = (BMI160_GYR_RAD_RANGE_NEGATIVE*(float)gyr_axis_data[Z_REG])/BMI160_MAX_VALUE;
-			}
-			else
-			{
-				/*
-				 * Do Nothing
-				 */
-			}
-			break;
-		default:
-			/*
-			 * Do Nothing
-			 */
-			break;
-		}
-	}
-}
-/*!
- * @brief This API is used to calculate the deviation of the values so it can prevent the wrong lectures of the values.
- * Processing data only.
- */
-void bmi160_varianza(void)
-{
-	float media_gyr_x = 0;
-	float media_gyr_y = 0;
-	float media_gyr_z = 0;
-
-	float media_acc_x = 0;
-	float media_acc_y = 0;
-	float media_acc_z = 0;
-
-
-	/*
-	 *
-	 */
-	acc_device.header = header_counter;
-
-	acc_var_x[acc_index_x] = acc_device.x;
-	acc_index_x++;
-	acc_var_y[acc_index_y] = acc_device.y;
-	acc_index_y++;
-	acc_var_z[acc_index_z] = acc_device.z;
-	acc_index_z++;
-
-	/*
-	 *
-	 */
-	gyr_device.header = header_counter;
-
-	gyr_var_x[gyr_index_x] = gyr_device.x;
-	gyr_index_x++;
-	gyr_var_y[gyr_index_y] = gyr_device.y;
-	gyr_index_y++;
-	gyr_var_z[gyr_index_z] = gyr_device.z;
-	gyr_index_z++;
-
-	header_counter++;
-
-	if(BMI160_VAR_BUFFER_SIZE == header_counter)
-	{
-		/* do var calculus*/
-		uint8_t index = 0;
-		for(index = 0; index <= BMI160_VAR_BUFFER_SIZE; index++)
-		{
-			acc_var[X_REG] += acc_var_x[index];
-			gyr_var[X_REG] += gyr_var_x[index];
-
-			acc_var[Y_REG] += acc_var_y[index];
-			gyr_var[Y_REG] += gyr_var_y[index];
-
-			acc_var[Z_REG] += acc_var_z[index];
-			gyr_var[Z_REG] += gyr_var_z[index];
-			if(BMI160_VAR_BUFFER_SIZE == index)
-			{
-				/* Calcula la media de la muestra*/
-				media_acc_x = acc_var[X_REG] / BMI160_VAR_BUFFER_SIZE;
-				media_gyr_x = gyr_var[X_REG] / BMI160_VAR_BUFFER_SIZE;
-
-				media_acc_x = acc_var[Y_REG] / BMI160_VAR_BUFFER_SIZE;
-				media_gyr_x = gyr_var[Y_REG] / BMI160_VAR_BUFFER_SIZE;
-
-				media_acc_x = acc_var[Z_REG] / BMI160_VAR_BUFFER_SIZE;
-				media_gyr_x = gyr_var[Z_REG] / BMI160_VAR_BUFFER_SIZE;
-
-				/* Calcula la varianza de la muestra*/
-
-				uint8_t index_var = 0;
-				for(index_var = 0; index_var < BMI160_VAR_BUFFER_SIZE; index_var++)
-				{
-					/* Varianza de las muestras*/
-					acc_var[X_REG] += ((acc_var_x[index_var] - media_acc_x) * (acc_var_x[index_var] - media_acc_x)) / (BMI160_VAR_BUFFER_SIZE - 1);
-					gyr_var[X_REG] += ((gyr_var_x[index_var] - media_gyr_x) * (gyr_var_x[index_var] - media_gyr_x)) / (BMI160_VAR_BUFFER_SIZE - 1);
-
-					acc_var[Y_REG] += ((acc_var_y[index_var] - media_acc_y) * (acc_var_y[index_var] - media_acc_y)) / (BMI160_VAR_BUFFER_SIZE - 1);
-					gyr_var[Y_REG] += ((gyr_var_y[index_var] - media_gyr_y) * (gyr_var_y[index_var] - media_gyr_y)) / (BMI160_VAR_BUFFER_SIZE - 1);
-
-					acc_var[Z_REG] += ((acc_var_z[index_var] - media_acc_z) * (acc_var_z[index_var] - media_acc_z)) / (BMI160_VAR_BUFFER_SIZE - 1);
-					gyr_var[Z_REG] += ((gyr_var_z[index_var] - media_gyr_z) * (gyr_var_z[index_var] - media_gyr_z)) / (BMI160_VAR_BUFFER_SIZE - 1);
-				}
-				/* Desviacion estardar*/
-				acc_var[X_REG] = sqrt(acc_var[X_REG]);
-				gyr_var[X_REG] = sqrt(gyr_var[X_REG]);
-
-				acc_var[Y_REG] = sqrt(acc_var[Y_REG]);
-				gyr_var[Y_REG] = sqrt(gyr_var[Y_REG]);
-
-				acc_var[Z_REG] = sqrt(acc_var[Z_REG]);
-				gyr_var[Z_REG] = sqrt(gyr_var[Z_REG]);
-			}
-		}
-		/* rst buffer counter*/
-		if((BMI160_VAR_BUFFER_SIZE == gyr_device.header) && (BMI160_VAR_BUFFER_SIZE == acc_device.header))
-		{
-			acc_index_x = 0;
-			acc_index_y = 0;
-			acc_index_z = 0;
-
-			gyr_index_x = 0;
-			gyr_index_y = 0;
-			gyr_index_z = 0;
-
-			header_counter = 0;
-		}
-	}
-}
-
-/*!
- * @brief This API is used and apply of the mahony function provided by the teacher so it can read the AHRS system.
- * Use RTOS system.
- */
-void bmi160_send_mahony(void)
-{
-	while(TRUE)
-	{
-		MahonyAHRSupdateIMU(gyr_device.x,gyr_device.y,gyr_device.z,acc_device.x,acc_device.y,acc_device.z);
-	}
-}
-
-/*!
- * @brief This API
+ * @brief This API is only for debug purpose, used to print the value captured of the registers in 16 bits format.
  */
 void bmi160_print_acc_dec(void)
 {
@@ -678,7 +404,7 @@ void bmi160_print_acc_dec(void)
 }
 
 /*!
- * @brief This API
+ * @brief This API is only for debu puspose, used to print the value captured of the registers in floatin point format.
  */
 void bmi160_print_acc_float(void)
 {
@@ -686,7 +412,7 @@ void bmi160_print_acc_float(void)
 }
 
 /*!
- * @brief This API
+ * @brief This API is only for debug purpose, used to print the value captured of the registers in 16 bits format.
  */
 void bmi160_print_gyr_dec(void)
 {
@@ -694,7 +420,7 @@ void bmi160_print_gyr_dec(void)
 }
 
 /*!
- * @brief This API
+ * @brief This API is only for debug purpose, used to print the value captured of the registers in floating point format.
  */
 void bmi160_print_gyr_float(void)
 {
