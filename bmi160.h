@@ -19,6 +19,7 @@
 #define BMI160_SUBADDRESS_SIZE 				(1U)
 #define BMI160_BAUDRATE 					(100000U)
 #define BMI160_VAR_BUFFER_SIZE				(10U)
+#define BMI160_HEADER						(0xAAAAAAAA)
 /* Offset*/
 /* Offset reg gyr*/
 #define BMI160_OFFSET_GYR_Z 				(0x76)
@@ -70,6 +71,12 @@
 #define BMI160_ACC_UINTS_RANGE_NEGATIVE		(-2)
 #define BMI160_GYR_UNITS_RANGE_POSITIVE		(2000U)
 #define BMI160_GYR_UNITS_RANGE_NEGATIVE		(-2000)
+
+#define MAHONY_HEADER						(0U)
+#define MAHONY_ROLL							(1U)
+#define MAHONY_PITCH						(2U)
+#define MAHONY_YAW							(3U)
+
 
 typedef enum
 {

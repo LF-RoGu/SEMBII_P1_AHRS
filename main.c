@@ -94,6 +94,10 @@ int main(void) {
 
     /* BMI160_READ_ACC_GYR task creation */
     xTaskCreate(bmi160_read_acc_gyr, "bmi160_read_acc", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
+    /* BMI160_READ_ACC_GYR task creation */
+    xTaskCreate(bmi160_send_mahony, "bmi160_read_acc", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-3, NULL);
+
+
     /* start scheduler */
     vTaskStartScheduler();
 

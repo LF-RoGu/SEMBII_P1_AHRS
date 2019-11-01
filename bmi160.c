@@ -38,7 +38,12 @@ struct bmi160_device sensor;
 struct comm_msg_acc_t acc_device;
 struct comm_msg_acc_t gyr_device;
 
+
 struct rtos_i2c_bmi160_package sensor_package;
+
+MahonyAHRSEuler_t euler_package;
+
+uint8_t device_arr[4] = {0};
 
 /*!
  * @brief This API is for the startup of the device, so it can run on NORMAL MODE as standard.
@@ -49,6 +54,11 @@ void bmi160_normal_mode_config(void)
 
 	while(TRUE)
 	{
+
+		/* Header conf*/
+		acc_device.header = BMI160_HEADER;
+		gyr_device.header = BMI160_HEADER;
+
 		/* SOFT RESET*/
 		sensor_package.i2c_number = rtos_i2c_0;
 		sensor_package.buffer = BMI160_SOFT_RESET_CMD;
@@ -141,7 +151,7 @@ void bmi160_read_acc(void)
 	sensor_package.subaddr = BMI160_READ_ACC_X_L;
 	sensor_package.subsize = BMI160_SUBADDRESS_SIZE;
 
-	for(index = X_LOW; index < Z_HIGH; index++)
+	for(index = X_LOW; index <= Z_HIGH; index++)
 	{
 		rtos_i2c_receive(
 						sensor_package.i2c_number,
@@ -178,7 +188,7 @@ void bmi160_read_gyr(void)
 	sensor_package.subaddr = BMI160_READ_GYR_X_L;
 	sensor_package.subsize = BMI160_SUBADDRESS_SIZE;
 
-	for(index = X_LOW; index < Z_HIGH; index++)
+	for(index = X_LOW; index <= Z_HIGH; index++)
 	{
 		rtos_i2c_receive(
 						sensor_package.i2c_number,
@@ -215,7 +225,7 @@ void bmi160_read_acc_gyr(void)
 		//bmi160_varianza();
 
 		/* Send data to the mahony*/
-		bmi160_send_mahony();
+		//bmi160_send_mahony();
 	}
 }
 
@@ -241,7 +251,7 @@ void data_axis_acc(void)
 	g_data_axis_acc[Z_REG] = data_temp;
 
 	/*
-	 * Call for teh function so it can get the values to floating point.
+	 * Call for the function so it can get the values to floating point.
 	 */
 	convert_value_acc(g_data_axis_acc);
 }
@@ -429,7 +439,6 @@ void bmi160_varianza(void)
 	/*
 	 *
 	 */
-	acc_device.header = header_counter;
 
 	acc_var_x[acc_index_x] = acc_device.x;
 	acc_index_x++;
@@ -441,7 +450,6 @@ void bmi160_varianza(void)
 	/*
 	 *
 	 */
-	gyr_device.header = header_counter;
 
 	gyr_var_x[gyr_index_x] = gyr_device.x;
 	gyr_index_x++;
@@ -529,6 +537,16 @@ void bmi160_send_mahony(void)
 	while(TRUE)
 	{
 		MahonyAHRSupdateIMU(gyr_device.x,gyr_device.y,gyr_device.z,acc_device.x,acc_device.y,acc_device.z);
+
+		/**/
+
+		device_arr[MAHONY_HEADER] = acc_device.header;
+		device_arr[MAHONY_PITCH] = euler_package.pitch;
+		device_arr[MAHONY_ROLL] = euler_package.roll;
+		device_arr[MAHONY_YAW] = euler_package.yaw;
+
+		/* Send uart package*/
+		rtos_uart_send(rtos_uart0,device_arr,sizeof(device_arr));
 	}
 }
 
