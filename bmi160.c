@@ -6,7 +6,9 @@
  */
 
 #include "bmi160.h"
+#include "timers.h"
 
+static void bmi160_init(void);
 
 /* Buffer to read acc & gyr*/
 int8_t g_read_gyr[6] = {0};
@@ -44,93 +46,126 @@ MahonyAHRSEuler_t euler_package;
 
 int8_t device_arr[4] = {0};
 
+static TimerHandle_t xReadAccTimer;
+static uint32_t timer_id;
+
+
+void TimerReadAccCallback(TimerHandle_t xTimer)
+{
+	configASSERT(timer_id);
+	timer_id = ( uint32_t ) pvTimerGetTimerID(xReadAccTimer);
+
+	printf("call back\n\r");
+}
+
+
+void bmi160_task(void)
+{
+	bmi160_init();
+
+	for(;;)
+	{
+
+
+
+	}
+}
+
+
+static void bmi160_init(void)
+{
+	uint8_t tao = pdMS_TO_TICKS(1000);
+
+	xReadAccTimer = xTimerCreate("READ_ACC_TIMER", tao, pdTRUE, (void*) 0, &TimerReadAccCallback);
+	xTimerStart(xReadAccTimer, 0);
+
+//	bmi160_normal_mode_config();
+}
+
+
 /*!
  * @brief This API is for the startup of the device, so it can run on NORMAL MODE as standard.
  * Use RTOS system.
  */
 void bmi160_normal_mode_config(void)
 {
+	/* Header conf*/
+	acc_device.header = BMI160_HEADER;
+	gyr_device.header = BMI160_HEADER;
+	uart_euler.header = BMI160_HEADER;
 
-	while(TRUE)
-	{
+	/* SOFT RESET*/
+	sensor_package.i2c_number = rtos_i2c_0;
+	sensor_package.buffer =  BMI160_SOFT_RESET_CMD;
+	sensor_package.length = BMI160_DATA_SIZE;
+	sensor_package.slave_addr = BMI160_I2C_ADDR;
+	sensor_package.subaddr = BMI160_COMMAND_REG_ADDR;
+	sensor_package.subsize = BMI160_SUBADDRESS_SIZE;
 
-		/* Header conf*/
-		acc_device.header = BMI160_HEADER;
-		gyr_device.header = BMI160_HEADER;
-		uart_euler.header = BMI160_HEADER;
+	rtos_i2c_transfer
+	(
+		sensor_package.i2c_number,
+		sensor_package.buffer,
+		sensor_package.length,
+		sensor_package.slave_addr,
+		sensor_package.subaddr,
+		sensor_package.subsize
+	);
+	/*
+	 * ACC
+	 */
+	/* Select the Output data rate, range of accelerometer sensor */
+	sensor.accel_cfg.odr = BMI160_ACCEL_ODR_1600HZ;
+	sensor.accel_cfg.range = BMI160_ACCEL_RANGE_2G;
+	/* Select the power mode of accelerometer sensor */
+	sensor.accel_cfg.power = BMI160_ACCEL_NORMAL_MODE;
+	/*
+	 * GYRO
+	 */
+	/* Select the Output data rate, range of Gyroscope sensor */
+	sensor.gyro_cfg.odr = BMI160_GYRO_ODR_3200HZ;
+	sensor.gyro_cfg.range = BMI160_GYRO_RANGE_2000_DPS;
+	/* Select the power mode of Gyroscope sensor */
+	sensor.gyro_cfg.power = BMI160_GYRO_NORMAL_MODE;
 
-		/* SOFT RESET*/
-		sensor_package.i2c_number = rtos_i2c_0;
-		sensor_package.buffer = BMI160_SOFT_RESET_CMD;
-		sensor_package.length = BMI160_DATA_SIZE;
-		sensor_package.slave_addr = BMI160_I2C_ADDR;
-		sensor_package.subaddr = BMI160_COMMAND_REG_ADDR;
-		sensor_package.subsize = BMI160_SUBADDRESS_SIZE;
+	/* Sensor package*/
+	/* ACC*/
+	sensor_package.i2c_number = rtos_i2c_0;
+	sensor_package.buffer = &sensor.accel_cfg.power;
+	sensor_package.length = BMI160_DATA_SIZE;
+	sensor_package.slave_addr = BMI160_I2C_ADDR;
+	sensor_package.subaddr = BMI160_COMMAND_REG_ADDR;
+	sensor_package.subsize = BMI160_SUBADDRESS_SIZE;
 
-		rtos_i2c_transfer(
-				sensor_package.i2c_number,
-				sensor_package.buffer,
-				sensor_package.length,
-				sensor_package.slave_addr,
-				sensor_package.subaddr,
-				sensor_package.subsize);
-		/*
-		 * ACC
-		 */
-		/* Select the Output data rate, range of accelerometer sensor */
-		sensor.accel_cfg.odr = BMI160_ACCEL_ODR_1600HZ;
-		sensor.accel_cfg.range = BMI160_ACCEL_RANGE_2G;
-		/* Select the power mode of accelerometer sensor */
-		sensor.accel_cfg.power = BMI160_ACCEL_NORMAL_MODE;
-		/*
-		 * GYRO
-		 */
-		/* Select the Output data rate, range of Gyroscope sensor */
-		sensor.gyro_cfg.odr = BMI160_GYRO_ODR_3200HZ;
-		sensor.gyro_cfg.range = BMI160_GYRO_RANGE_2000_DPS;
-		/* Select the power mode of Gyroscope sensor */
-		sensor.gyro_cfg.power = BMI160_GYRO_NORMAL_MODE;
+	/* SET POWER MODE*/
+	rtos_i2c_transfer
+	(
+		sensor_package.i2c_number,
+		sensor_package.buffer,
+		sensor_package.length,
+		sensor_package.slave_addr,
+		sensor_package.subaddr,
+		sensor_package.subsize
+	);
 
+	/* GYR*/
+	sensor_package.i2c_number = rtos_i2c_0;
+	sensor_package.buffer = &sensor.gyro_cfg.power;
+	sensor_package.length = BMI160_DATA_SIZE;
+	sensor_package.slave_addr = BMI160_I2C_ADDR;
+	sensor_package.subaddr = BMI160_COMMAND_REG_ADDR;
+	sensor_package.subsize = BMI160_SUBADDRESS_SIZE;
 
-		/* Sensor package*/
-		/* ACC*/
-		sensor_package.i2c_number = rtos_i2c_0;
-		sensor_package.buffer = &sensor.accel_cfg.power;
-		sensor_package.length = BMI160_DATA_SIZE;
-		sensor_package.slave_addr = BMI160_I2C_ADDR;
-		sensor_package.subaddr = BMI160_COMMAND_REG_ADDR;
-		sensor_package.subsize = BMI160_SUBADDRESS_SIZE;
-
-		/* SET POWER MODE*/
-		rtos_i2c_transfer(
-				sensor_package.i2c_number,
-				sensor_package.buffer,
-				sensor_package.length,
-				sensor_package.slave_addr,
-				sensor_package.subaddr,
-				sensor_package.subsize);
-
-		/* GYR*/
-		sensor_package.i2c_number = rtos_i2c_0;
-		sensor_package.buffer = &sensor.gyro_cfg.power;
-		sensor_package.length = BMI160_DATA_SIZE;
-		sensor_package.slave_addr = BMI160_I2C_ADDR;
-		sensor_package.subaddr = BMI160_COMMAND_REG_ADDR;
-		sensor_package.subsize = BMI160_SUBADDRESS_SIZE;
-
-		/* SET POWER MODE*/
-		rtos_i2c_transfer(
-				sensor_package.i2c_number,
-				sensor_package.buffer,
-				sensor_package.length,
-				sensor_package.slave_addr,
-				sensor_package.subaddr,
-				sensor_package.subsize);
-
-		/*Kill task*/
-		vTaskSuspend(NULL);
-
-	}
+	/* SET POWER MODE*/
+	rtos_i2c_transfer
+	(
+		sensor_package.i2c_number,
+		sensor_package.buffer,
+		sensor_package.length,
+		sensor_package.slave_addr,
+		sensor_package.subaddr,
+		sensor_package.subsize
+	);
 }
 
 /*!
@@ -153,13 +188,15 @@ void bmi160_read_acc(void)
 
 	for(index = X_LOW; index <= Z_HIGH; index++)
 	{
-		rtos_i2c_receive(
-						sensor_package.i2c_number,
-						sensor_package.buffer,
-						sensor_package.length,
-						sensor_package.slave_addr,
-						sensor_package.subaddr,
-						sensor_package.subsize);
+		rtos_i2c_receive
+		(
+			sensor_package.i2c_number,
+			sensor_package.buffer,
+			sensor_package.length,
+			sensor_package.slave_addr,
+			sensor_package.subaddr,
+			sensor_package.subsize
+		);
 
 		g_read_acc[index] = *sensor_package.buffer;
 
@@ -219,6 +256,7 @@ void bmi160_read_acc_gyr(void)
 	{
 		/* Read values and stores it in the acc and gyt structure*/
 		bmi160_read_acc();
+
 		bmi160_read_gyr();
 
 		/* Get the var of both data*/

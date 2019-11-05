@@ -14,6 +14,7 @@
 #include "rtos_uart.h"
 #include <math.h>
 #include <stdio.h>
+#include "FreeRTOS.h"
 
 #define BMI160_DATA_SIZE 					(1U)
 #define BMI160_SUBADDRESS_SIZE 				(1U)
@@ -211,5 +212,6 @@ void bmi160_send_mahony(void);
  */
 void bmi160_varianza(void);
 
+void bmi160_task(void);
 
 #endif /* BMI160_H_ */
