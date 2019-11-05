@@ -66,9 +66,9 @@
 #define BMI160_ACC_CONF		                (0x40)
 
 /**/
-#define BMI160_MAX_VALUE					(65535U)
-#define BMI160_ACC_UNITS_RANGE				(360U)
-#define BMI160_GYR_UNITS_RANGE				(360U)
+#define BMI160_MAX_VALUE					(32758U)
+#define BMI160_ACC_UNITS_RANGE				(2.0/( (float)(1<<15) ))
+#define BMI160_GYR_UNITS_RANGE				(2000.0/( (float)(1<<15) ))
 
 
 #define MAHONY_HEADER						(0U)
@@ -210,6 +210,11 @@ void bmi160_send_mahony(void);
  * @brief This API is used to calculate the deviation of the values so it can prevent the wrong lectures of the values.
  */
 void bmi160_varianza(void);
+
+/*!
+ * @brief This API is used to calculate the deviation of the values so it can prevent the wrong lectures of the values.
+ */
+void fix_delay(void);
 
 
 #endif /* BMI160_H_ */

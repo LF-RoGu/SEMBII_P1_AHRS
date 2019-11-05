@@ -93,7 +93,10 @@ int main(void) {
     xTaskCreate(bmi160_normal_mode_config, "bmi160_normal_mode", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-1, NULL);
 
     /* BMI160_READ_ACC_GYR task creation */
-    xTaskCreate(bmi160_read_acc_gyr, "bmi160_read_acc", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
+    xTaskCreate(bmi160_read_acc_gyr, "bmi160_read_acc", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-1, NULL);
+
+    /* BMI160_READ_ACC_GYR task creation */
+    xTaskCreate(bmi160_send_mahony, "bmi160_read_acc", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
 
     /* start scheduler */
     vTaskStartScheduler();

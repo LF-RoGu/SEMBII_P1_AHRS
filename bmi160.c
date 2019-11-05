@@ -225,7 +225,11 @@ void bmi160_read_acc_gyr(void)
 		//bmi160_varianza();
 
 		/* Send data to the mahony*/
-		bmi160_send_mahony();
+		//bmi160_send_mahony();
+
+		/* Fixed delay*/
+
+		//fix_delay();
 	}
 }
 
@@ -308,13 +312,13 @@ void convert_value_acc(int16_t *acc_axis_data)
 		switch(index)
 		{
 			case X_REG:
-				acc_device.x = (BMI160_ACC_UNITS_RANGE)*acc_axis_data[X_REG]/BMI160_MAX_VALUE;
+				acc_device.x = ((float)acc_axis_data[X_REG]*BMI160_ACC_UNITS_RANGE);
 			break;
 			case Y_REG:
-				acc_device.y = (BMI160_ACC_UNITS_RANGE)*acc_axis_data[Y_REG]/BMI160_MAX_VALUE;
+				acc_device.y = ((float)acc_axis_data[Y_REG]*BMI160_ACC_UNITS_RANGE);
 			break;
 			case Z_REG:
-				acc_device.z = (BMI160_ACC_UNITS_RANGE)*acc_axis_data[Z_REG]/BMI160_MAX_VALUE;
+				acc_device.z = ((float)acc_axis_data[Z_REG]*BMI160_ACC_UNITS_RANGE);
 			break;
 			default:
 				/*
@@ -339,13 +343,13 @@ void convert_value_gyr(int16_t *gyr_axis_data)
 		switch(index)
 		{
 			case X_REG:
-				gyr_device.x = (BMI160_GYR_UNITS_RANGE)*gyr_axis_data[X_REG]/BMI160_MAX_VALUE;
+				gyr_device.x = ((float)gyr_axis_data[X_REG]*BMI160_ACC_UNITS_RANGE);
 			break;
 			case Y_REG:
-				gyr_device.y = (BMI160_GYR_UNITS_RANGE)*gyr_axis_data[Y_REG]/BMI160_MAX_VALUE;
+				gyr_device.y = ((float)gyr_axis_data[Y_REG]*BMI160_ACC_UNITS_RANGE);
 			break;
 			case Z_REG:
-				gyr_device.z = (BMI160_GYR_UNITS_RANGE)*gyr_axis_data[Z_REG]/BMI160_MAX_VALUE;
+				gyr_device.z = ((float)gyr_axis_data[Z_REG]*BMI160_ACC_UNITS_RANGE);
 			break;
 			default:
 				/*
@@ -469,19 +473,22 @@ void bmi160_varianza(void)
  */
 void bmi160_send_mahony(void)
 {
-	uint8_t* struct_ptr;
+	while(TRUE)
+	{
+		uint8_t* struct_ptr;
 
-	euler_package = MahonyAHRSupdateIMU(gyr_device.x,gyr_device.y,gyr_device.z,acc_device.x,acc_device.y,acc_device.z);
+		euler_package = MahonyAHRSupdateIMU(gyr_device.x,gyr_device.y,gyr_device.z,acc_device.x,acc_device.y,acc_device.z);
 
-	uart_euler.pitch_mahony = euler_package.pitch;
-	uart_euler.roll_mahony = euler_package.roll;
-	uart_euler.yaw_mahony = euler_package.yaw;
+		uart_euler.pitch_mahony = euler_package.pitch;
+		uart_euler.roll_mahony = euler_package.roll;
+		uart_euler.yaw_mahony = euler_package.yaw;
 
-	struct_ptr = &uart_euler;
-	/**/
+		struct_ptr = &uart_euler;
+		/**/
 
-	/* Send uart package*/
-	rtos_uart_send(rtos_uart0,struct_ptr,sizeof(uart_euler));
+		/* Send uart package*/
+		rtos_uart_send(rtos_uart0,struct_ptr,sizeof(uart_euler));
+	}
 }
 
 /*!
@@ -514,4 +521,15 @@ void bmi160_print_gyr_dec(void)
 void bmi160_print_gyr_float(void)
 {
 	printf("gyr axis: X: %f Y: %f Z: %f\n", acc_device.x,acc_device.y,acc_device.z);
+}
+
+void fix_delay(void)
+{
+	uint32_t i;
+	for(i = 0;i < 32000;i++)
+	{
+		/*
+		 * Do Nothing
+		 */
+	}
 }
