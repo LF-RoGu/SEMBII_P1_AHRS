@@ -55,6 +55,8 @@ static EventGroupHandle_t g_time_events;
 
 static SemaphoreHandle_t acc_semaphore;
 static SemaphoreHandle_t gyr_semaphore;
+static SemaphoreHandle_t g_mutex1;
+static SemaphoreHandle_t g_mutex2;
 
 MahonyAHRSEuler_t euler_package;
 
@@ -63,9 +65,11 @@ int8_t device_arr[4] = {0};
 void bmi160_vtask()
 {
 	EventBits_t ev;
-	TickType_t xDelay = pdMS_TO_TICKS(300);
+	TickType_t xDelay;
 
-	bmi160_normal_mode_config();
+	xDelay = pdMS_TO_TICKS(300); //300 miliseconds delay
+
+	bmi160_normal_mode_config(); //configure BMI160 with normal mode
 
 	xEventGroupSetBits(g_time_events, mEventAccelRead);
 
@@ -76,6 +80,7 @@ void bmi160_vtask()
 
 		if(ev & mEventAccelRead)
 		{
+			xSemaphoreGive(acc_semaphore);
 			xEventGroupSetBits(g_time_events, mEventGyroRead);
 			xEventGroupClearBits(g_time_events, mEventAccelRead);
 		}
@@ -86,6 +91,7 @@ void bmi160_vtask()
 
 		if(ev & mEventGyroRead)
 		{
+			xSemaphoreGive(gyr_semaphore);
 			xEventGroupSetBits(g_time_events, mEventAccelRead);
 			xEventGroupClearBits(g_time_events, mEventGyroRead);
 		}
@@ -189,36 +195,41 @@ static void bmi160_normal_mode_config(void)
 void bmi160_read_acc(void)
 {
 	uint8_t index = 0;
-
 	int8_t data_temp;
 
-	/* Sensor package*/
-	/* ACC*/
-	sensor_package.i2c_number = rtos_i2c_0;
-	sensor_package.buffer = &data_temp;
-	sensor_package.length = BMI160_DATA_SIZE;
-	sensor_package.slave_addr = BMI160_I2C_ADDR;
-	sensor_package.subaddr = BMI160_READ_ACC_X_L;
-	sensor_package.subsize = BMI160_SUBADDRESS_SIZE;
 
-	for(index = X_LOW; index <= Z_HIGH; index++)
+	for(;;)
 	{
-		rtos_i2c_receive
-		(
-			sensor_package.i2c_number,
-			sensor_package.buffer,
-			sensor_package.length,
-			sensor_package.slave_addr,
-			sensor_package.subaddr,
-			sensor_package.subsize
-		);
+		xSemaphoreTake(acc_semaphore, portMAX_DELAY);
 
-		g_read_acc[index] = *sensor_package.buffer;
+		/* Sensor package*/
+		/* ACC*/
+		sensor_package.i2c_number = rtos_i2c_0;
+		sensor_package.buffer = &data_temp;
+		sensor_package.length = BMI160_DATA_SIZE;
+		sensor_package.slave_addr = BMI160_I2C_ADDR;
+		sensor_package.subaddr = BMI160_READ_ACC_X_L;
+		sensor_package.subsize = BMI160_SUBADDRESS_SIZE;
 
-		sensor_package.subaddr++;
+		for(index = X_LOW; index <= Z_HIGH; index++)
+		{
+			rtos_i2c_receive
+			(
+				sensor_package.i2c_number,
+				sensor_package.buffer,
+				sensor_package.length,
+				sensor_package.slave_addr,
+				sensor_package.subaddr,
+				sensor_package.subsize
+			);
+
+			g_read_acc[index] = *sensor_package.buffer;
+
+			sensor_package.subaddr++;
+		}
+
+		data_axis_acc();
 	}
-
-	data_axis_acc();
 }
 /*!
  * @brief This API is for the read of the registers corresponding to the gyroscope.
@@ -231,7 +242,7 @@ void bmi160_read_gyr(void)
 
 	for(;;)
 	{
-
+		xSemaphoreTake(gyr_semaphore, portMAX_DELAY);
 		/* Sensor package*/
 		/* ACC*/
 		sensor_package.i2c_number = rtos_i2c_0;
@@ -484,8 +495,8 @@ int main()
 
     /* BMI160 task creation */
     xTaskCreate(bmi160_vtask, "main thread", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-1, NULL);
-  //  xTaskCreate(bmi160_read_acc, "read acc thread", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
-    //xTaskCreate(bmi160_read_gyr, "read gyr thread", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
+    xTaskCreate(bmi160_read_acc, "read acc thread", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
+    xTaskCreate(bmi160_read_gyr, "read gyr thread", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
 
     /* start scheduler */
     vTaskStartScheduler();
