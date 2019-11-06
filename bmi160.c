@@ -55,8 +55,8 @@ static EventGroupHandle_t g_time_events;
 
 static SemaphoreHandle_t acc_semaphore;
 static SemaphoreHandle_t gyr_semaphore;
-static SemaphoreHandle_t g_mutex1;
-static SemaphoreHandle_t g_mutex2;
+static SemaphoreHandle_t send_semaphore;
+static SemaphoreHandle_t mutex_semaphore;
 
 MahonyAHRSEuler_t euler_package;
 
@@ -67,7 +67,7 @@ void bmi160_vtask()
 	EventBits_t ev;
 	TickType_t xDelay;
 
-	xDelay = pdMS_TO_TICKS(300); //300 miliseconds delay
+	xDelay = pdMS_TO_TICKS(200); //300 miliseconds delay
 
 	bmi160_normal_mode_config(); //configure BMI160 with normal mode
 
@@ -100,7 +100,10 @@ void bmi160_vtask()
 
 		}
 
+		xSemaphoreGive(send_semaphore);
 		vTaskDelay(xDelay);
+		xSemaphoreTake(mutex_semaphore, portMAX_DELAY);
+
 	}
 }
 
@@ -438,17 +441,23 @@ static void bmi160_send_mahony(void)
 {
 	uint8_t* struct_ptr;
 
-	euler_package = MahonyAHRSupdateIMU(gyr_device.x,gyr_device.y,gyr_device.z,acc_device.x,acc_device.y,acc_device.z);
+	for(;;)
+	{
+		xSemaphoreTake(send_semaphore, portMAX_DELAY);
 
-	uart_euler.pitch_mahony = euler_package.pitch;
-	uart_euler.roll_mahony = euler_package.roll;
-	uart_euler.yaw_mahony = euler_package.yaw;
+		euler_package = MahonyAHRSupdateIMU(gyr_device.x,gyr_device.y,gyr_device.z,acc_device.x,acc_device.y,acc_device.z);
 
-	struct_ptr = &uart_euler;
-	/**/
+		uart_euler.pitch_mahony = euler_package.pitch;
+		uart_euler.roll_mahony = euler_package.roll;
+		uart_euler.yaw_mahony = euler_package.yaw;
 
-	/* Send uart package*/
-	rtos_uart_send(rtos_uart0,struct_ptr,sizeof(uart_euler));
+		struct_ptr = &uart_euler;
+		/**/
+
+		/* Send uart package*/
+		rtos_uart_send(rtos_uart0,struct_ptr,sizeof(uart_euler));
+		xSemaphoreGive(mutex_semaphore);
+	}
 }
 
 int main()
@@ -492,11 +501,14 @@ int main()
 
      acc_semaphore = xSemaphoreCreateBinary();
      gyr_semaphore = xSemaphoreCreateBinary();
+     send_semaphore = xSemaphoreCreateBinary();
+     mutex_semaphore = xSemaphoreCreateBinary();
 
     /* BMI160 task creation */
-    xTaskCreate(bmi160_vtask, "main thread", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-1, NULL);
-    xTaskCreate(bmi160_read_acc, "read acc thread", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
-    xTaskCreate(bmi160_read_gyr, "read gyr thread", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
+    xTaskCreate(bmi160_vtask, "main task", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-1, NULL);
+    xTaskCreate(bmi160_read_acc, "read acc task", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
+    xTaskCreate(bmi160_read_gyr, "read gyr task", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
+    xTaskCreate(bmi160_send_mahony, "send task", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
 
     /* start scheduler */
     vTaskStartScheduler();
