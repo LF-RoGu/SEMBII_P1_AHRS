@@ -56,7 +56,9 @@ static EventGroupHandle_t g_time_events;
 static SemaphoreHandle_t acc_semaphore;
 static SemaphoreHandle_t gyr_semaphore;
 static SemaphoreHandle_t send_semaphore;
-static SemaphoreHandle_t mutex_semaphore;
+static SemaphoreHandle_t mutex1_semaphore;
+static SemaphoreHandle_t mutex2_semaphore;
+static SemaphoreHandle_t mutex3_semaphore;
 
 MahonyAHRSEuler_t euler_package;
 
@@ -81,6 +83,7 @@ void bmi160_vtask()
 		if(ev & mEventAccelRead)
 		{
 			xSemaphoreGive(acc_semaphore);
+			xSemaphoreTake(mutex1_semaphore, portMAX_DELAY);
 			xEventGroupSetBits(g_time_events, mEventGyroRead);
 			xEventGroupClearBits(g_time_events, mEventAccelRead);
 		}
@@ -92,6 +95,7 @@ void bmi160_vtask()
 		if(ev & mEventGyroRead)
 		{
 			xSemaphoreGive(gyr_semaphore);
+			xSemaphoreTake(mutex2_semaphore, portMAX_DELAY);
 			xEventGroupSetBits(g_time_events, mEventAccelRead);
 			xEventGroupClearBits(g_time_events, mEventGyroRead);
 		}
@@ -101,8 +105,8 @@ void bmi160_vtask()
 		}
 
 		xSemaphoreGive(send_semaphore);
-		vTaskDelay(xDelay);
-		xSemaphoreTake(mutex_semaphore, portMAX_DELAY);
+		//vTaskDelay(xDelay);
+		xSemaphoreTake(mutex3_semaphore, portMAX_DELAY);
 
 	}
 }
@@ -232,6 +236,7 @@ void bmi160_read_acc(void)
 		}
 
 		data_axis_acc();
+		xSemaphoreGive(mutex1_semaphore);
 	}
 }
 /*!
@@ -269,12 +274,12 @@ void bmi160_read_gyr(void)
 
 			sensor_package.subaddr++;
 		}
-	}
-
 	/*
 	 *
 	 */
 	data_axis_gyr();
+	xSemaphoreGive(mutex2_semaphore);
+	}
 }
 
 /*!
@@ -456,7 +461,7 @@ static void bmi160_send_mahony(void)
 
 		/* Send uart package*/
 		rtos_uart_send(rtos_uart0,struct_ptr,sizeof(uart_euler));
-		xSemaphoreGive(mutex_semaphore);
+		xSemaphoreGive(mutex3_semaphore);
 	}
 }
 
@@ -502,13 +507,15 @@ int main()
      acc_semaphore = xSemaphoreCreateBinary();
      gyr_semaphore = xSemaphoreCreateBinary();
      send_semaphore = xSemaphoreCreateBinary();
-     mutex_semaphore = xSemaphoreCreateBinary();
+     mutex1_semaphore = xSemaphoreCreateBinary();
+     mutex2_semaphore = xSemaphoreCreateBinary();
+     mutex3_semaphore = xSemaphoreCreateBinary();
 
     /* BMI160 task creation */
     xTaskCreate(bmi160_vtask, "main task", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-1, NULL);
     xTaskCreate(bmi160_read_acc, "read acc task", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
     xTaskCreate(bmi160_read_gyr, "read gyr task", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
-    xTaskCreate(bmi160_send_mahony, "send task", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL);
+    xTaskCreate(bmi160_send_mahony, "send task", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-3, NULL);
 
     /* start scheduler */
     vTaskStartScheduler();
